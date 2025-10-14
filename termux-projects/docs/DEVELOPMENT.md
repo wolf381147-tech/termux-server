@@ -117,37 +117,6 @@ termux-projects/
 - [service-web](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/service-web) - Web服务统一管理器
 - [tool-backup](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/tool-backup) - 系统状态快照工具
 
-## 测试
-
-项目使用 Jest 作为测试框架，为所有核心模块提供单元测试。测试覆盖了事件总线、配置管理、健康检查、服务监控和唤醒锁管理等模块。
-
-测试结构:
-```
-tests/
-├── setup.js              # 测试环境设置
-├── config/               # 配置管理相关测试
-│   └── config-manager.test.js
-└── system/               # 系统模块相关测试
-    ├── event-bus.test.js
-    ├── health-check.test.js
-    ├── service-monitor.test.js
-    └── wakelock-manager.test.js
-```
-
-运行测试:
-```bash
-npm test
-```
-
-运行测试并监视文件变化:
-```bash
-npm run test:watch
-```
-
-生成测试覆盖率报告:
-```bash
-npm run test:coverage
-```
 
 ## 安全措施
 

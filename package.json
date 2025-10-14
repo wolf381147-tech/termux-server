@@ -1,35 +1,31 @@
 {
-  "name": "termux-server-project",
+  "name": "termux-projects",
   "version": "1.0.0",
-  "description": "A complete server solution built with Termux on Android",
-  "main": "index.js",
+  "description": "Termux服务器项目，集成SSH、Web服务器和系统监控功能",
+  "main": "termux-projects/system/start-sshd.js",
   "scripts": {
     "start:sshd": "node termux-projects/system/start-sshd.js",
     "start:web": "node termux-projects/system/start-web.js",
     "start:health-check": "node termux-projects/system/health-check.js",
     "start:service-monitor": "node termux-projects/system/service-monitor.js",
     "start:wakelock": "node termux-projects/system/wakelock-manager.js",
+    "start:all": "pm2 start pm2.config.js",
+    "stop:all": "pm2 stop all",
+    "restart:all": "pm2 restart all",
+    "status": "pm2 status",
+    "logs": "pm2 logs",
+    "monit": "pm2 monit",
     "dev:sshd": "nodemon termux-projects/system/start-sshd.js",
     "dev:web": "nodemon termux-projects/system/start-web.js",
     "dev:health-check": "nodemon termux-projects/system/health-check.js",
     "dev:service-monitor": "nodemon termux-projects/system/service-monitor.js",
-    "dev:wakelock": "nodemon termux-projects/system/wakelock-manager.js",
-    "start:all": "pm2 start pm2.config.js",
-    "stop:all": "pm2 stop pm2.config.js",
-    "restart:all": "pm2 restart pm2.config.js",
-    "status": "pm2 status",
-    "logs": "pm2 logs",
-    "monit": "pm2 monit",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "dev:wakelock": "nodemon termux-projects/system/wakelock-manager.js"
   },
   "keywords": [
     "termux",
-    "android",
-    "server",
     "ssh",
-    "web-server"
+    "web-server",
+    "server-management"
   ],
   "author": "Termux Developer",
   "license": "MIT",
@@ -37,7 +33,6 @@
     "pm2": "^5.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1",
-    "jest": "^29.6.2"
+    "nodemon": "^3.0.1"
   }
 }

@@ -53,6 +53,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Test coverage
+coverage/
+
+# Jest
+.jest/
+
 # Termux specific files
 .shortcuts/
 .tmux.conf
