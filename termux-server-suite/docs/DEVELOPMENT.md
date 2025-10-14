@@ -21,7 +21,7 @@ termux-server-suite/
 
 ## 服务架构
 
-所有服务都通过PM2进行管理，配置文件为根目录下的 [pm2.config.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/pm2.config.js)。
+所有服务都通过PM2进行管理，配置文件为根目录下的 `pm2.config.js`。
 
 ### 当前激活的服务
 
@@ -35,7 +35,7 @@ termux-server-suite/
 
 **VS Code Server服务** - 曾提供基于浏览器的VS Code开发环境，但由于存在一些未解决的问题，暂时禁用。
 
-如果你想重新启用此功能，可以查看Git历史记录中删除的[start-vscode.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-server-suite/system/start-vscode.js)文件及相关配置。
+如果你想重新启用此功能，可以查看Git历史记录中删除的`start-vscode.js`文件及相关配置。
 
 ## 开发流程
 
@@ -72,7 +72,7 @@ npm run logs
 
 ## 配置管理
 
-所有配置都在 [config/](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-server-suite/config/) 目录中管理，使用分层配置结构，支持环境变量覆盖。
+所有配置都在 `config/` 目录中管理，使用分层配置结构，支持环境变量覆盖。
 
 ## 测试
 
