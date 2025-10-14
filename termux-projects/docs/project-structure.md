@@ -14,7 +14,7 @@ termux-projects/
 │   ├── wakelock-manager.js# 唤醒锁管理
 │   ├── service-manager.js # 通用服务管理器
 │   └── event-bus.js       # 事件总线
-├── my-website/          # 默认托管网站
+├── my-website/          # 服务器监控网页
 └── tests/               # 测试文件
 ```
 
@@ -48,7 +48,7 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 - tool-backup - 系统状态快照工具
 
 ### my-website/
-默认托管的网站文件，通过Python HTTP服务器提供访问。
+服务器监控网页，通过Python HTTP服务器提供访问。
 
 ## 文件说明
 
