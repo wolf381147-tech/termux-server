@@ -1,4 +1,4 @@
-# Termux Server 完整指南
+# Termux Server Suite 完整指南
 
 ## 目录
 

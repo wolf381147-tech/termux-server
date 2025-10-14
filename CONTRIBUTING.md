@@ -10,54 +10,55 @@
 
 ### 报告 Bug
 
-在 GitHub 上提交 issue 前，请检查是否已有相同的问题。如果找不到，请创建一个新的 issue，并包含以下信息：
+如果您在 Termux Server Suite 中发现了 Bug，请在 GitHub 上创建一个 Issue，并包含以下信息：
 
-1. 清晰的标题和描述
-2. 复现步骤
-3. 预期行为和实际行为
-4. 环境信息（Termux 版本、Android 版本等）
-5. 相关日志或截图
+- 清晰简洁的标题
+- 描述您期望发生的事情和实际发生的事情
+- 重现问题的步骤
+- 您的环境信息（Termux 版本、Android 版本等）
+- 相关的日志输出或截图
 
 ### 提交功能请求
 
-我们欢迎新功能的建议！请在 GitHub 上创建一个 issue，描述：
+如果您有改进 Termux Server Suite 的想法，请在 GitHub 上创建一个 Issue，并包含以下信息：
 
-1. 功能的详细说明
-2. 解决的问题或满足的需求
-3. 可能的实现方式
-4. 与其他功能的交互关系
+- 清晰简洁的标题
+- 详细描述您的建议
+- 解释为什么这个功能对项目有用
+- 如果可能，提供实现该功能的大致思路
 
 ### 提交 Pull Request
 
-1. Fork 项目并创建您的功能分支
-2. 进行更改并确保测试通过
-3. 更新相关文档
-4. 提交 Pull Request 并详细描述更改内容
+1. Fork 项目
+2. 创建您的功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 将更改推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开一个 Pull Request
 
 ## 开发环境设置
 
-1. 克隆项目
-2. 安装依赖：
-pm install
-3. 运行测试：
-pm test
+1. 克隆您的 Fork
+2. 安装依赖：`npm install`
+3. 进行更改
+4. 运行测试：`npm test`
+5. 确保所有测试都通过
 
 ## 代码规范
 
-- 遵循项目现有的代码风格
-- 添加适当的注释
-- 确保代码通过所有测试
+- 遵循项目中现有的代码风格
+- 为新功能编写测试
 - 更新相关文档
+- 提交前运行测试套件
 
-## 测试
+## 项目结构
 
-在提交代码前，请确保所有测试都能通过，并在适当情况下添加新的测试用例。
+- `termux-server-suite/system/` - 核心服务脚本
+- `termux-server-suite/config/` - 配置文件
+- `termux-server-suite/docs/` - 项目文档
+- `termux-server-suite/my-website/` - 默认托管网站
 
-## 文档
+## 问题和讨论
 
-对于新功能或重大更改，请更新相关文档，包括：
+如果您有任何问题或想讨论项目，请在 GitHub 上创建一个 Issue。
 
-- README.md
-- 相关的 docs/*.md 文件
-
-感谢您的贡献！
+感谢您对 Termux Server Suite 的贡献！

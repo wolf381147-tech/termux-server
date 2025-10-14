@@ -1,4 +1,4 @@
-# Termux Server Project
+# Termux Server Suite
 
 这是一个在Android设备上使用Termux构建的完整服务器解决方案。该项目提供了多种服务和监控功能，可以在移动设备上运行一个功能完备的服务器环境。
 

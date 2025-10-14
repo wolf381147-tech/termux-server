@@ -1,5 +1,5 @@
 {
-  "name": "termux-server-project",
+  "name": "termux-server-suite",
   "version": "0.1.0",
   "description": "A complete server solution built with Termux on Android",
   "main": "index.js",
