@@ -19,8 +19,11 @@ show_main_menu() {
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
     echo "1. 🖥️  服务器监控面板"
-    echo "2. 💾 备份工具"
-    echo "3. 🚪 退出"
+    echo "2. 🔐 SSH 服务管理"
+    echo "3. 🌐 Web 服务管理"
+    echo "4. 💾 备份工具"
+    echo "5. 📊 系统状态"
+    echo "6. 🚪 退出"
     echo "=========================================="
 }
 
@@ -117,7 +120,7 @@ handle_web_menu() {
                 echo -e "${BLUE}检查Web服务状态...${NC}"
                 ~/.shortcuts/service-web status --type server
                 echo -e "${BLUE}显示Web连接信息...${NC}"
-                ~/.shortcuts/service-web info --with-guide
+                ~/.shortcuts/service-web info --type server --with-guide
                 read -p "按回车键继续..."
                 ;;
             0)
@@ -151,8 +154,7 @@ handle_backup_menu() {
                 ;;
             3)
                 echo -e "${BLUE}清理旧快照...${NC}"
-                ~/.shortcuts/tool-backup clean
-                echo -e "${GREEN}✅ 快照清理完成${NC}"
+                ~/.shortcuts/tool-backup clean --keep 3
                 read -p "按回车键继续..."
                 ;;
             0)
@@ -168,6 +170,18 @@ handle_backup_menu() {
 
 # 主程序循环
 main() {
+    # 检查是否有参数，支持直接跳转到指定功能
+    if [ "$1" = "ssh" ]; then
+        handle_ssh_menu
+        return
+    elif [ "$1" = "web" ]; then
+        handle_web_menu
+        return
+    elif [ "$1" = "backup" ]; then
+        handle_backup_menu
+        return
+    fi
+    
     while true; do
         show_main_menu
         read -p "请选择: " main_choice
@@ -178,9 +192,27 @@ main() {
                 ~/.shortcuts/server-monitor
                 ;;
             2)
-                handle_backup_menu
+                handle_ssh_menu
                 ;;
             3)
+                handle_web_menu
+                ;;
+            4)
+                handle_backup_menu
+                ;;
+            5)
+                echo -e "${YELLOW}显示系统状态...${NC}"
+                if command -v neofetch >/dev/null 2>&1; then
+                    neofetch
+                else
+                    echo "系统信息:"
+                    uname -a
+                    echo "用户: $(whoami)"
+                    echo "当前目录: $(pwd)"
+                fi
+                read -p "按回车键继续..."
+                ;;
+            6)
                 echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
                 exit 0
                 ;;
