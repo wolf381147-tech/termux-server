@@ -18,14 +18,15 @@ show_main_menu() {
     echo "=========================================="
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
-    echo "1. 🌐 SSH 服务管理"
-    echo "2. 🌐 Web 服务管理"
-    echo "3. 💾 备份工具"
-    echo "4. 📁 文件管理器"
-    echo "5. ⚙️  系统配置"
-    echo "6. 📊 系统状态"
-    echo "7. 🛠️  系统工具"
-    echo "8. 📚 帮助文档"
+    echo "1. 🎛️  整合服务管理"
+    echo "2. 🌐 SSH 服务管理"
+    echo "3. 🌐 Web 服务管理"
+    echo "4. 💾 备份工具"
+    echo "5. 📁 文件管理器"
+    echo "6. ⚙️  系统配置"
+    echo "7. 📊 系统状态"
+    echo "8. 🛠️  系统工具"
+    echo "9. 📚 帮助文档"
     echo "0. 🚪 退出"
     echo "=========================================="
 }
@@ -217,25 +218,29 @@ main() {
         
         case $main_choice in
             1)
-                handle_ssh_menu
+                # 新增的整合服务管理菜单
+                ~/.shortcuts/menu-services
                 ;;
             2)
-                handle_web_menu
+                handle_ssh_menu
                 ;;
             3)
-                handle_backup_menu
+                handle_web_menu
                 ;;
             4)
+                handle_backup_menu
+                ;;
+            5)
                 echo -e "${YELLOW}启动文件管理器...${NC}"
                 ~/.shortcuts/service-web start --type manager --background
                 echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
                 read -p "按回车键继续..."
                 ;;
-            5)
+            6)
                 echo -e "${YELLOW}系统配置功能将在后续版本中实现${NC}"
                 read -p "按回车键继续..."
                 ;;
-            6)
+            7)
                 echo -e "${YELLOW}显示系统状态...${NC}"
                 if command -v neofetch >/dev/null 2>&1; then
                     neofetch
@@ -247,11 +252,11 @@ main() {
                 fi
                 read -p "按回车键继续..."
                 ;;
-            7)
+            8)
                 echo -e "${YELLOW}系统工具功能将在后续版本中实现${NC}"
                 read -p "按回车键继续..."
                 ;;
-            8)
+            9)
                 echo -e "${YELLOW}帮助文档功能将在后续版本中实现${NC}"
                 read -p "按回车键继续..."
                 ;;
