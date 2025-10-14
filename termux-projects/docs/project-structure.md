@@ -18,8 +18,8 @@ termux-projects/
 ├── file-manager/        # 文件管理工具
 ├── data-science/        # 数据科学相关脚本
 ├── scripts/             # 实用脚本
-├── web-gui/            # Web图形界面
-└── projects/           # 其他项目文件
+├── web-gui/             # Web图形界面
+└── projects/            # 其他项目文件
 ```
 
 ## 目录详细说明
@@ -34,6 +34,8 @@ termux-projects/
 - 项目结构说明
 - 重构总结
 - 测试指南
+- 安全指南
+- 快捷脚本重构计划
 
 ### system/
 核心系统服务模块，包含所有基础服务的实现：
@@ -44,6 +46,13 @@ termux-projects/
 - 唤醒锁管理
 - 通用服务管理器
 - 事件总线
+
+### .shortcuts/
+Termux快捷脚本目录，包含统一的服务管理脚本：
+- [menu-main](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/menu-main) - 主菜单系统
+- [service-ssh](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-ssh) - SSH服务统一管理器
+- [service-web](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-web) - Web服务统一管理器
+- [tool-backup](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/tool-backup) - 备份工具统一管理器
 
 ### my-website/
 默认托管的网站文件，通过Python HTTP服务器提供访问。
@@ -98,4 +107,25 @@ npm run start:web
 npm run start:health-check
 npm run start:service-monitor
 npm run start:wakelock
+```
+
+### 使用快捷脚本
+```bash
+# SSH服务管理
+~/.shortcuts/service-ssh start --optimized
+~/.shortcuts/service-ssh stop
+~/.shortcuts/service-ssh info
+
+# Web服务管理
+~/.shortcuts/service-web start --type server
+~/.shortcuts/service-web start --type manager --background
+~/.shortcuts/service-web stop --type server
+
+# 备份工具
+~/.shortcuts/tool-backup backup --type project
+~/.shortcuts/tool-backup backup --type ultimate
+~/.shortcuts/tool-backup list
+
+# 主菜单系统
+~/.shortcuts/menu-main
 ```
