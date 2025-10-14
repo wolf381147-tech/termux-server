@@ -31,10 +31,46 @@ class ServiceManager {
     }
     
     /**
+     * 验证命令安全性
+     * @param {string} command - 要验证的命令
+     * @returns {boolean} 命令是否安全
+     */
+    isCommandSafe(command) {
+        // 禁止的命令列表
+        const forbiddenCommands = [
+            'rm -rf', 'rm -f', 'rm -r', 
+            'format', 'mkfs', 
+            'dd if=',
+            '>', '>>'
+        ];
+        
+        // 检查是否包含禁止的命令
+        for (const forbidden of forbiddenCommands) {
+            if (command.includes(forbidden)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
      * 启动服务
      */
     start() {
         const { startCommand, workingDir } = this.config;
+        
+        // 验证命令安全性
+        if (!this.isCommandSafe(startCommand)) {
+            console.error(`${this.serviceName} 服务启动命令不安全: ${startCommand}`);
+            eventBus.publish(`service.${this.serviceName.toLowerCase()}.start.failed`, {
+                service: this.serviceName,
+                error: '启动命令不安全',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
         const command = workingDir ? `cd ${workingDir} && ${startCommand}` : startCommand;
         
         console.log(`启动 ${this.serviceName} 服务...`);
@@ -86,6 +122,17 @@ class ServiceManager {
      */
     stop() {
         const { stopCommand } = this.config;
+        
+        // 验证命令安全性
+        if (!this.isCommandSafe(stopCommand)) {
+            console.error(`${this.serviceName} 服务停止命令不安全: ${stopCommand}`);
+            eventBus.publish(`service.${this.serviceName.toLowerCase()}.stop.failed`, {
+                service: this.serviceName,
+                error: '停止命令不安全',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
         
         if (!this.process || !this.isRunning) {
             console.log(`${this.serviceName} 服务未运行`);

@@ -18,7 +18,7 @@ class WakelockManager {
         // 订阅相关事件
         this.subscribeToEvents();
     }
-
+    
     /**
      * 订阅相关事件
      */
@@ -44,9 +44,35 @@ class WakelockManager {
     }
     
     /**
+     * 验证命令安全性
+     * @param {string} command - 要验证的命令
+     * @returns {boolean} 命令是否安全
+     */
+    isCommandSafe(command) {
+        // 对于Termux特定命令，只允许预定义的安全命令
+        const safeCommands = [
+            'termux-wake-lock',
+            'termux-wake-unlock',
+            'termux-battery-status'
+        ];
+        
+        return safeCommands.includes(command);
+    }
+    
+    /**
      * 获取唤醒锁
      */
     acquire() {
+        // 验证命令安全性
+        if (!this.isCommandSafe('termux-wake-lock')) {
+            console.error('唤醒锁获取命令不安全');
+            eventBus.publish('wakelock.acquire.failed', {
+                error: '获取命令不安全',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
         // 如果启用了电池检查，先检查电池电量
         if (this.enableBatteryCheck) {
             this.checkBatteryLevel().then(canAcquire => {
@@ -99,6 +125,16 @@ class WakelockManager {
      * 释放唤醒锁
      */
     release() {
+        // 验证命令安全性
+        if (!this.isCommandSafe('termux-wake-unlock')) {
+            console.error('唤醒锁释放命令不安全');
+            eventBus.publish('wakelock.release.failed', {
+                error: '释放命令不安全',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
         exec('termux-wake-unlock', (error) => {
             if (!error) {
                 this.isLocked = false;
@@ -121,6 +157,12 @@ class WakelockManager {
      * 检查电池电量
      */
     checkBatteryLevel() {
+        // 验证命令安全性
+        if (!this.isCommandSafe('termux-battery-status')) {
+            console.error('电池状态检查命令不安全');
+            return Promise.resolve(true); // 默认允许获取唤醒锁
+        }
+        
         return new Promise((resolve) => {
             exec('termux-battery-status', (error, stdout) => {
                 if (error) {
@@ -179,5 +221,21 @@ class WakelockManager {
         });
     }
 }
+
+// 创建并启动唤醒锁管理器
+const wakelock = new WakelockManager();
+wakelock.acquire();
+wakelock.startMonitoring();
+
+// 保持进程运行
+process.on('SIGINT', () => {
+    wakelock.release();
+    console.log('停止唤醒锁管理...');
+    // 发布唤醒锁管理停止事件
+    eventBus.publish('wakelock.manager.stopped', {
+        timestamp: new Date().toISOString()
+    });
+    process.exit(0);
+});
 
 module.exports = WakelockManager;

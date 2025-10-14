@@ -31,11 +31,40 @@ class ServiceMonitor {
     }
     
     /**
+     * 验证命令安全性
+     * @param {string} command - 要验证的命令
+     * @returns {boolean} 命令是否安全
+     */
+    isCommandSafe(command) {
+        // 只允许PM2相关命令
+        const allowedPatterns = [
+            /^pm2 describe [a-zA-Z0-9\-_]+$/,
+            /^pm2 restart [a-zA-Z0-9\-_]+$/
+        ];
+        
+        for (const pattern of allowedPatterns) {
+            if (pattern.test(command)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
      * 检查服务状态
      */
     checkService(serviceName) {
+        const command = `pm2 describe ${serviceName}`;
+        
+        // 验证命令安全性
+        if (!this.isCommandSafe(command)) {
+            console.error(`服务检查命令不安全: ${command}`);
+            return Promise.resolve({ name: serviceName, status: 'unknown' });
+        }
+        
         return new Promise((resolve) => {
-            exec(`pm2 describe ${serviceName}`, (error, stdout) => {
+            exec(command, (error, stdout) => {
                 if (error || !stdout.includes('online')) {
                     resolve({ name: serviceName, status: 'stopped' });
                 } else {
@@ -49,6 +78,19 @@ class ServiceMonitor {
      * 重启服务
      */
     restartService(serviceName) {
+        const command = `pm2 restart ${serviceName}`;
+        
+        // 验证命令安全性
+        if (!this.isCommandSafe(command)) {
+            console.error(`服务重启命令不安全: ${command}`);
+            eventBus.publish('service.restart.failed', {
+                service: serviceName,
+                error: '重启命令不安全',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
         // 初始化重试计数
         if (!this.retryCounts[serviceName]) {
             this.retryCounts[serviceName] = 0;
@@ -77,7 +119,7 @@ class ServiceMonitor {
             timestamp: new Date().toISOString()
         });
         
-        exec(`pm2 restart ${serviceName}`, (error) => {
+        exec(command, (error) => {
             if (error) {
                 console.error(`重启 ${serviceName} 失败:`, error);
                 // 发布服务重启失败事件
