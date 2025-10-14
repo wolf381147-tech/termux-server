@@ -36,8 +36,24 @@ Icon?
 # PM2
 .pm2/
 
-# Termux specific files
+# MyPy cache
+.mypy_cache/
+
+# SSH keys and config
 .ssh/
+
+# Temporary scripts
+.shortcuts/set_permissions.bat
+
+# System-specific files
+installed-packages.txt
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Termux specific files
 .shortcuts/
 .tmux.conf
 .bashrc
