@@ -66,7 +66,7 @@
 
 1. 克隆项目到 Termux 环境中：
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/wolf381147-tech/termux-server.git
    cd termux-server-suite
    ```
 

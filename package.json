@@ -33,12 +33,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/termux-server-suite.git"
+    "url": "https://github.com/wolf381147-tech/termux-server.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/termux-server-suite/issues"
+    "url": "https://github.com/wolf381147-tech/termux-server/issues"
   },
-  "homepage": "https://github.com/your-username/termux-server-suite#readme",
+  "homepage": "https://github.com/wolf381147-tech/termux-server#readme",
   "dependencies": {
     "pm2": "^5.3.0"
   },
