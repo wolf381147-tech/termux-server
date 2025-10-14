@@ -50,6 +50,7 @@ termux-projects/
 ### .shortcuts/
 Termux快捷脚本目录，包含统一的服务管理脚本：
 - [menu-main](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/menu-main) - 主菜单系统
+- [server-monitor](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/server-monitor) - 服务器监控面板
 - [service-ssh](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-ssh) - SSH服务统一管理器
 - [service-web](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-web) - Web服务统一管理器
 - [tool-backup](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/tool-backup) - 系统状态快照工具
@@ -145,6 +146,9 @@ npm run start:wakelock
 
 ### 使用快捷脚本
 ```bash
+# 服务器监控面板
+~/.shortcuts/server-monitor
+
 # SSH服务管理
 ~/.shortcuts/service-ssh start --optimized
 ~/.shortcuts/service-ssh stop
@@ -169,6 +173,12 @@ npm run start:wakelock
 ### 菜单系统结构
 ```
 🚀 Termux 服务器项目
+├── 🖥️  服务器监控面板
+│   ├── 🔄 重启所有服务
+│   ├── ⏹️ 停止所有服务
+│   ├── ▶️ 启动所有服务
+│   ├── 📊 刷新监控面板
+│   └── 📋 查看服务日志
 ├── 🔐 SSH 服务管理
 │   ├── 🔁 切换SSH服务状态
 │   ├── ▶️ 启动优化SSH服务（防息屏断联）

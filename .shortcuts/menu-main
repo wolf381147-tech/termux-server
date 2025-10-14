@@ -18,11 +18,12 @@ show_main_menu() {
     echo "=========================================="
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
-    echo "1. 🔐 SSH 服务管理"
-    echo "2. 🌐 Web 服务管理"
-    echo "3. 💾 备份工具"
-    echo "4. 📊 系统状态"
-    echo "5. 🚪 退出"
+    echo "1. 🖥️  服务器监控面板"
+    echo "2. 🔐 SSH 服务管理"
+    echo "3. 🌐 Web 服务管理"
+    echo "4. 💾 备份工具"
+    echo "5. 📊 系统状态"
+    echo "6. 🚪 退出"
     echo "=========================================="
 }
 
@@ -176,15 +177,19 @@ main() {
         
         case $main_choice in
             1)
-                handle_ssh_menu
+                # 新增的服务器监控面板
+                ~/.shortcuts/server-monitor
                 ;;
             2)
-                handle_web_menu
+                handle_ssh_menu
                 ;;
             3)
-                handle_backup_menu
+                handle_web_menu
                 ;;
             4)
+                handle_backup_menu
+                ;;
+            5)
                 echo -e "${YELLOW}显示系统状态...${NC}"
                 if command -v neofetch >/dev/null 2>&1; then
                     neofetch
@@ -196,7 +201,7 @@ main() {
                 fi
                 read -p "按回车键继续..."
                 ;;
-            5)
+            6)
                 echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
                 exit 0
                 ;;
