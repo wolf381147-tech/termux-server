@@ -118,14 +118,14 @@ Termux 提供了图形化快捷菜单，可以通过 Termux 的通知栏快速�
 
 ## 配置管理
 
-项目的配置文件位于 `termux-server-suite/config/` 目录中。支持通过环境变量覆盖默认配置，详情请参考 [配置文档](termux-server-suite/docs/config-usage.md)。
+项目的配置文件位于 `termux-server-suite/config/` 目录中。支持通过环境变量覆盖默认配置，详情请参考 [开发指南](termux-server-suite/docs/DEVELOPMENT.md)。
 
 ## 安全说明
 
 - 请勿将敏感信息提交到版本控制系统
 - 在公网环境下运行服务时，请确保采取适当的安全措施
 - 长时间运行唤醒锁可能会消耗电池电量
-- 详细安全指南请参考 [安全文档](termux-server-suite/docs/security-guide.md)
+- 详细安全指南请参考 [开发指南](termux-server-suite/docs/DEVELOPMENT.md)
 
 ## 贡献指南
 
