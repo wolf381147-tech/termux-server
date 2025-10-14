@@ -2,7 +2,6 @@
   "name": "termux-projects",
   "version": "1.0.0",
   "description": "Termux服务器项目，集成SSH、Web服务器和系统监控功能",
-  "main": "termux-projects/system/start-sshd.js",
   "scripts": {
     "start:sshd": "node termux-projects/system/start-sshd.js",
     "start:web": "node termux-projects/system/start-web.js",

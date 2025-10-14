@@ -30,9 +30,6 @@ Icon?
 *.bak
 *.backup
 
-# Nodemon
-.nodemonignore
-
 # PM2
 .pm2/
 
