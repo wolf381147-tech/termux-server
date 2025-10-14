@@ -1,13 +1,13 @@
 const http = require('http');
 const net = require('net');
 const { exec } = require('child_process');
-const config = require('../config/app-config');
+const { get } = require('../config/config-manager');
 
 class HealthChecker {
     constructor() {
-        this.checks = config.healthCheck.checks;
-        this.checkInterval = config.healthCheck.checkInterval;
-        this.timeout = config.healthCheck.timeout;
+        this.checks = get('healthCheck.checks');
+        this.checkInterval = get('healthCheck.checkInterval');
+        this.timeout = get('healthCheck.timeout');
     }
     
     checkTCP(host, port) {

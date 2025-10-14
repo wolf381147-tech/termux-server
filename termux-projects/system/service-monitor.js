@@ -1,11 +1,11 @@
 const { exec } = require('child_process');
-const config = require('../config/app-config');
+const { get } = require('../config/config-manager');
 
 class ServiceMonitor {
     constructor() {
-        this.services = config.serviceMonitor.services;
-        this.checkInterval = config.serviceMonitor.checkInterval;
-        this.maxRetries = config.serviceMonitor.maxRetries || 3;
+        this.services = get('serviceMonitor.services');
+        this.checkInterval = get('serviceMonitor.checkInterval');
+        this.maxRetries = get('serviceMonitor.maxRetries') || 3;
         this.retryCounts = {};
     }
     
