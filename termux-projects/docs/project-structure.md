@@ -76,9 +76,24 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 6. [service-manager.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js) - 通用服务管理器
 7. [event-bus.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/event-bus.js) - 中央事件总线
 
-## 运行和管理
+## 技术栈说明
 
-使用PM2进行服务管理，配置文件位于项目根目录的 [pm2.config.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/pm2.config.js)。
+### 核心技术
+- **Node.js** - 服务运行时环境
+- **PM2** - 生产环境进程管理器
+- **Nodemon** - 开发环境自动重启工具
+
+### 依赖管理
+- **npm** - 包管理器
+- **package.json** - 项目依赖和脚本配置
+
+### 测试框架
+- **Jest** - JavaScript测试框架
+
+### 版本控制
+- **Git** - 代码版本控制
+
+## 运行和管理
 
 ### 启动所有服务
 ```bash
@@ -88,6 +103,11 @@ npm run start:all
 ### 停止所有服务
 ```bash
 npm run stop:all
+```
+
+### 重启所有服务
+```bash
+npm run restart:all
 ```
 
 ### 查看服务状态
@@ -100,7 +120,21 @@ npm run status
 npm run logs
 ```
 
-### 单独启动某个服务
+### 监控服务
+```bash
+npm run monit
+```
+
+### 单独启动某个服务（开发环境）
+```bash
+npm run dev:sshd
+npm run dev:web
+npm run dev:health-check
+npm run dev:service-monitor
+npm run dev:wakelock
+```
+
+### 单独启动某个服务（生产环境）
 ```bash
 npm run start:sshd
 npm run start:web

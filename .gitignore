@@ -30,6 +30,12 @@ Icon?
 *.bak
 *.backup
 
+# Nodemon
+.nodemonignore
+
+# PM2
+.pm2/
+
 # Termux specific files
 .ssh/
 .shortcuts/
