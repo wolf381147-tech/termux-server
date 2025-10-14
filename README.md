@@ -26,6 +26,7 @@
 │   ├── config/           # 配置文件
 │   └── docs/             # 项目文档
 ├── .shortcuts/           # Termux 快捷脚本
+├── .vscode/              # VS Code 配置文件
 └── pm2.config.js         # PM2 配置文件
 ```
 
@@ -121,6 +122,26 @@ Termux 提供了图形化快捷菜单，可以通过 Termux 的通知栏快速�
 - 🖥️ 服务器监控面板
 - 💾 系统状态快照工具
 - 🚪 退出菜单
+
+## VS Code 开发环境
+
+项目为在 Windows 上使用 VS Code 进行开发提供了完整的配置支持：
+
+### 配置文件
+项目包含完整的 `.vscode` 配置目录，提供：
+- **settings.json** - 工作区设置
+- **extensions.json** - 推荐扩展列表
+- **launch.json** - 调试配置
+- **tasks.json** - 任务配置
+
+### 推荐扩展
+安装推荐的 VS Code 扩展可以获得最佳开发体验：
+- **Remote - SSH** - 支持通过 SSH 连接到 Termux 环境进行远程开发
+- **ESLint** - JavaScript 代码质量检查
+- **Prettier** - 代码格式化工具
+
+### 调试和任务支持
+项目提供了针对各个服务组件的调试配置和常用开发任务的快捷执行方式。
 
 ## VS Code Server 使用说明
 
