@@ -61,19 +61,19 @@
 
 | 事件名称 | 触发时机 | 数据结构 |
 |---------|---------|---------|
-| `service.ssh.started` | SSH服务启动成功时 | `{ port, timestamp }` |
-| `service.ssh.start.failed` | SSH服务启动失败时 | `{ error, timestamp }` |
-| `service.ssh.stopped` | SSH服务停止时 | `{ timestamp }` |
-| `service.ssh.heartbeat` | SSH服务心跳检测时 | `{ timestamp }` |
+| `service.ssh.started` | SSH服务启动成功时 | `{ service, config, timestamp }` |
+| `service.ssh.start.failed` | SSH服务启动失败时 | `{ service, error, timestamp }` |
+| `service.ssh.stopped` | SSH服务停止时 | `{ service, exitCode, signal, timestamp }` |
+| `service.ssh.heartbeat` | SSH服务心跳检测时 | `{ service, timestamp }` |
 
 ### Web服务相关事件
 
 | 事件名称 | 触发时机 | 数据结构 |
 |---------|---------|---------|
-| `service.web.started` | Web服务启动成功时 | `{ port, host, directory, timestamp }` |
-| `service.web.start.failed` | Web服务启动失败时 | `{ error, timestamp }` |
-| `service.web.stopped` | Web服务停止时 | `{ timestamp }` |
-| `service.web.heartbeat` | Web服务心跳检测时 | `{ timestamp }` |
+| `service.web.started` | Web服务启动成功时 | `{ service, config, timestamp }` |
+| `service.web.start.failed` | Web服务启动失败时 | `{ service, error, timestamp }` |
+| `service.web.stopped` | Web服务停止时 | `{ service, exitCode, signal, timestamp }` |
+| `service.web.heartbeat` | Web服务心跳检测时 | `{ service, timestamp }` |
 
 ### 配置相关事件
 
@@ -149,3 +149,12 @@ eventBus.subscribe('my.feature.activated', (data) => {
     // 执行相关逻辑
 });
 ```
+
+## 重构改进
+
+最近的重构引入了以下改进：
+
+1. **通用服务管理器**：创建了 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L9-L128) 类，统一处理服务的启动、停止和监控逻辑
+2. **代码去重**：将SSH和Web服务的共同逻辑提取到 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L9-L128) 中，减少了代码重复
+3. **更好的模块化**：每个模块现在都有更清晰的职责分离
+4. **增强的事件系统**：所有服务现在都发布一致的事件集，便于统一监控和管理

@@ -1,28 +1,37 @@
 const http = require('http');
 const net = require('net');
-const { exec } = require('child_process');
-const { get } = require('../config/config-manager');
+const config = require('../config/config-manager');
 const eventBus = require('./event-bus');
 
 class HealthChecker {
     constructor() {
-        this.checks = get('healthCheck.checks');
-        this.checkInterval = get('healthCheck.checkInterval');
-        this.timeout = get('healthCheck.timeout');
+        this.checks = config.get('healthCheck.checks');
+        this.checkInterval = config.get('healthCheck.checkInterval');
+        this.timeout = config.get('healthCheck.timeout');
         
         // 订阅相关事件
+        this.subscribeToEvents();
+    }
+    
+    /**
+     * 订阅相关事件
+     */
+    subscribeToEvents() {
         eventBus.subscribe('service.started', (data) => {
             console.log(`收到服务启动通知: ${data.service}`);
         });
         
         eventBus.subscribe('config.updated', (data) => {
             console.log('配置已更新，重新加载配置...');
-            this.checks = get('healthCheck.checks');
-            this.checkInterval = get('healthCheck.checkInterval');
-            this.timeout = get('healthCheck.timeout');
+            this.checks = config.get('healthCheck.checks');
+            this.checkInterval = config.get('healthCheck.checkInterval');
+            this.timeout = config.get('healthCheck.timeout');
         });
     }
     
+    /**
+     * TCP连接检查
+     */
     checkTCP(host, port) {
         return new Promise((resolve) => {
             const socket = new net.Socket();
@@ -45,6 +54,9 @@ class HealthChecker {
         });
     }
     
+    /**
+     * HTTP连接检查
+     */
     checkHTTP(host, port) {
         return new Promise((resolve) => {
             const req = http.get(`http://${host}:${port}`, (res) => {
@@ -62,6 +74,9 @@ class HealthChecker {
         });
     }
     
+    /**
+     * 执行单个检查
+     */
     async performCheck(check) {
         const host = 'localhost';
         
@@ -89,6 +104,9 @@ class HealthChecker {
         }
     }
     
+    /**
+     * 运行所有检查
+     */
     async runChecks() {
         console.log('执行健康检查...');
         const results = [];
@@ -124,6 +142,9 @@ class HealthChecker {
         return results;
     }
     
+    /**
+     * 启动健康检查器
+     */
     start() {
         // 立即执行一次检查
         this.runChecks();
@@ -142,6 +163,7 @@ class HealthChecker {
     }
 }
 
+// 创建并启动健康检查器
 const healthChecker = new HealthChecker();
 healthChecker.start();
 
@@ -154,3 +176,5 @@ process.on('SIGINT', () => {
     });
     process.exit(0);
 });
+
+module.exports = HealthChecker;

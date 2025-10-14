@@ -1,18 +1,28 @@
 const { exec } = require('child_process');
-const { get } = require('../config/config-manager');
+const config = require('../config/config-manager');
 const eventBus = require('./event-bus');
 
+/**
+ * 唤醒锁管理器
+ * 用于管理 Termux 的 wake lock，防止设备休眠。
+ */
 class WakelockManager {
     constructor() {
+        // 从配置中获取设置
+        this.checkInterval = config.get('wakelock.checkInterval');
+        this.enableBatteryCheck = config.get('wakelock.enableBatteryCheck');
+        this.minBatteryLevel = config.get('wakelock.minBatteryLevel');
+        this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery');
         this.isLocked = false;
-        // 从配置中获取检查间隔
-        this.checkInterval = get('wakelock.checkInterval');
-        // 从配置中获取电池检查设置
-        this.enableBatteryCheck = get('wakelock.enableBatteryCheck');
-        this.minBatteryLevel = get('wakelock.minBatteryLevel');
-        this.autoReleaseOnLowBattery = get('wakelock.autoReleaseOnLowBattery');
         
         // 订阅相关事件
+        this.subscribeToEvents();
+    }
+
+    /**
+     * 订阅相关事件
+     */
+    subscribeToEvents() {
         eventBus.subscribe('service.health.failed', (data) => {
             console.log(`收到服务异常通知: ${data.service}`);
         });
@@ -26,13 +36,16 @@ class WakelockManager {
         
         eventBus.subscribe('config.updated', (data) => {
             console.log('配置已更新，重新加载配置...');
-            this.checkInterval = get('wakelock.checkInterval');
-            this.enableBatteryCheck = get('wakelock.enableBatteryCheck');
-            this.minBatteryLevel = get('wakelock.minBatteryLevel');
-            this.autoReleaseOnLowBattery = get('wakelock.autoReleaseOnLowBattery');
+            this.checkInterval = config.get('wakelock.checkInterval');
+            this.enableBatteryCheck = config.get('wakelock.enableBatteryCheck');
+            this.minBatteryLevel = config.get('wakelock.minBatteryLevel');
+            this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery');
         });
     }
     
+    /**
+     * 获取唤醒锁
+     */
     acquire() {
         // 如果启用了电池检查，先检查电池电量
         if (this.enableBatteryCheck) {
@@ -82,6 +95,9 @@ class WakelockManager {
         }
     }
     
+    /**
+     * 释放唤醒锁
+     */
     release() {
         exec('termux-wake-unlock', (error) => {
             if (!error) {
@@ -101,7 +117,9 @@ class WakelockManager {
         });
     }
     
-    // 检查电池电量
+    /**
+     * 检查电池电量
+     */
     checkBatteryLevel() {
         return new Promise((resolve) => {
             exec('termux-battery-status', (error, stdout) => {
@@ -141,6 +159,9 @@ class WakelockManager {
         });
     }
     
+    /**
+     * 启动监控
+     */
     startMonitoring() {
         // 定期检查并重新获取唤醒锁
         setInterval(() => {
@@ -159,17 +180,4 @@ class WakelockManager {
     }
 }
 
-const wakelock = new WakelockManager();
-wakelock.acquire();
-wakelock.startMonitoring();
-
-// 保持进程运行
-process.on('SIGINT', () => {
-    wakelock.release();
-    console.log('停止唤醒锁管理...');
-    // 发布唤醒锁管理停止事件
-    eventBus.publish('wakelock.manager.stopped', {
-        timestamp: new Date().toISOString()
-    });
-    process.exit(0);
-});
+module.exports = WakelockManager;

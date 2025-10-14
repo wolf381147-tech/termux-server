@@ -1,15 +1,22 @@
 const { exec } = require('child_process');
-const { get } = require('../config/config-manager');
+const config = require('../config/config-manager');
 const eventBus = require('./event-bus');
 
 class ServiceMonitor {
     constructor() {
-        this.services = get('serviceMonitor.services');
-        this.checkInterval = get('serviceMonitor.checkInterval');
-        this.maxRetries = get('serviceMonitor.maxRetries') || 3;
+        this.services = config.get('serviceMonitor.services');
+        this.checkInterval = config.get('serviceMonitor.checkInterval');
+        this.maxRetries = config.get('serviceMonitor.maxRetries') || 3;
         this.retryCounts = {};
         
         // 订阅相关事件
+        this.subscribeToEvents();
+    }
+    
+    /**
+     * 订阅相关事件
+     */
+    subscribeToEvents() {
         eventBus.subscribe('service.health.failed', (data) => {
             console.log(`收到服务异常通知: ${data.service}`);
             // 可以在这里添加自动处理逻辑
@@ -17,12 +24,15 @@ class ServiceMonitor {
         
         eventBus.subscribe('config.updated', (data) => {
             console.log('配置已更新，重新加载配置...');
-            this.services = get('serviceMonitor.services');
-            this.checkInterval = get('serviceMonitor.checkInterval');
-            this.maxRetries = get('serviceMonitor.maxRetries') || 3;
+            this.services = config.get('serviceMonitor.services');
+            this.checkInterval = config.get('serviceMonitor.checkInterval');
+            this.maxRetries = config.get('serviceMonitor.maxRetries') || 3;
         });
     }
     
+    /**
+     * 检查服务状态
+     */
     checkService(serviceName) {
         return new Promise((resolve) => {
             exec(`pm2 describe ${serviceName}`, (error, stdout) => {
@@ -35,6 +45,9 @@ class ServiceMonitor {
         });
     }
     
+    /**
+     * 重启服务
+     */
     restartService(serviceName) {
         // 初始化重试计数
         if (!this.retryCounts[serviceName]) {
@@ -88,6 +101,9 @@ class ServiceMonitor {
         });
     }
     
+    /**
+     * 监控所有服务
+     */
     async monitor() {
         console.log('开始监控服务...');
         
@@ -119,6 +135,9 @@ class ServiceMonitor {
         });
     }
     
+    /**
+     * 启动服务监控器
+     */
     start() {
         // 立即执行一次监控
         this.monitor();
@@ -137,6 +156,7 @@ class ServiceMonitor {
     }
 }
 
+// 创建并启动服务监控器
 const monitor = new ServiceMonitor();
 monitor.start();
 
@@ -149,3 +169,5 @@ process.on('SIGINT', () => {
     });
     process.exit(0);
 });
+
+module.exports = ServiceMonitor;
