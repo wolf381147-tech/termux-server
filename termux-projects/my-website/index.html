@@ -29,35 +29,82 @@
             margin: 10px 0;
             border-radius: 8px;
         }
+        .nav {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🚀 我的手机个人网站</h1>
-        <div class="card">
-            <h3>📱 关于这个网站</h3>
-            <p>这个网站完全运行在我的Android手机上！使用Termux和Python搭建。</p>
+        
+        <div class="nav">
+            <a href="#home">首页</a> | 
+            <a href="#about">关于</a>
         </div>
-        <div class="card">
-            <h3>🛠️ 技术栈</h3>
-            <ul>
-                <li>Termux - Android终端环境</li>
-                <li>Python HTTP服务器</li>
-                <li>HTML5 + CSS3</li>
-            </ul>
+
+        <div id="home">
+            <div class="card">
+                <h3>📱 关于这个网站</h3>
+                <p>这个网站完全运行在我的Android手机上！使用Termux和Python搭建。</p>
+            </div>
+            <div class="card">
+                <h3>🛠️ 技术栈</h3>
+                <ul>
+                    <li>Termux - Android终端环境</li>
+                    <li>Python HTTP服务器</li>
+                    <li>HTML5 + CSS3</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3>📊 系统信息</h3>
+                <p>服务器运行时间: <span id="uptime">计算中...</span></p>
+            </div>
         </div>
-        <div class="card">
-            <h3>📊 系统信息</h3>
-            <p>服务器运行时间: <span id="uptime">计算中...</span></p>
-            <p>当前时间: <span id="currentTime"></span></p>
+
+        <div id="about">
+            <div class="card">
+                <h2>关于我</h2>
+                <p>这是一个运行在Android手机上的个人网站！</p>
+                <p>使用Termux搭建，展示了手机也能成为Web服务器。</p>
+                <p>通过这个项目，我证明了移动设备也可以作为功能完整的服务器环境运行。</p>
+            </div>
         </div>
     </div>
 
     <script>
-        document.getElementById('currentTime').textContent = new Date().toLocaleString();
-        setTimeout(() => {
-            document.getElementById('uptime').textContent = '持续运行中';
-        }, 1000);
+        // 简单的运行时间计算
+        function updateUptime() {
+            const startTime = new Date('2025-01-01T00:00:00');
+            const now = new Date();
+            const diff = new Date(now - startTime);
+            const days = diff.getUTCDate() - 1;
+            const hours = diff.getUTCHours();
+            const minutes = diff.getUTCMinutes();
+            
+            document.getElementById('uptime').textContent = 
+                `${days}天 ${hours}小时 ${minutes}分钟`;
+        }
+        
+        // 页面加载时更新运行时间
+        updateUptime();
+        // 每分钟更新一次
+        setInterval(updateUptime, 60000);
     </script>
 </body>
 </html>
