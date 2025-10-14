@@ -1,21 +1,11 @@
 #!/usr/bin/env node
 
-// VS Code Server服务管理脚本
-// 支持启动、停止和检查VS Code Server服务状态
+// VS Code Server安装和管理脚本
+// 解决在Termux环境中安装code-server的问题
 
 const { execSync, spawn } = require('child_process');
-const path = require('path');
 const fs = require('fs');
-
-// 获取项目根目录
-const projectRoot = path.resolve(__dirname, '../..');
-
-// 导入配置管理器和应用配置
-const configPath = path.join(projectRoot, 'termux-server-suite/config/app-config.js');
-const config = require(configPath);
-
-// VS Code Server端口
-const VSCODE_PORT = 8080;
+const path = require('path');
 
 /**
  * 检查命令是否安全执行
@@ -39,19 +29,14 @@ function isCommandSafe(command) {
   
   // 只允许预定义的安全命令
   const safeCommands = [
-    'code-server',
-    'pkill',
-    'killall',
-    'ps aux',
-    'netstat',
     'npm',
     'node',
     'which',
     'whereis',
+    'pkg',
+    'apt',
     'curl',
-    'tar',
-    'mv',
-    'pgrep'
+    'wget'
   ];
   
   for (const safeCommand of safeCommands) {
@@ -64,7 +49,7 @@ function isCommandSafe(command) {
 }
 
 /**
- * 检查code-server是否已安装
+ * 检查是否已安装code-server
  */
 function isCodeServerInstalled() {
   try {
@@ -113,19 +98,18 @@ function installCodeServerPrebuilt() {
 }
 
 /**
- * 安装code-server
+ * 通过npm安装code-server（带错误处理）
  */
-function installCodeServer() {
+function installCodeServerNpm() {
   try {
-    console.log('正在安装 VS Code Server...');
-    
-    // 首先尝试通过预编译包安装
-    if (installCodeServerPrebuilt()) {
-      return;
-    }
-    
-    // 如果预编译包安装失败，尝试npm安装
     console.log('正在通过npm安装 VS Code Server...');
+    
+    // 尝试设置npm配置以跳过需要编译的包
+    try {
+      execSync('npm config set python python3', { stdio: 'ignore' });
+    } catch (e) {
+      // 忽略配置错误
+    }
     
     const installCommand = 'npm install -g code-server --unsafe-perm=true --allow-root';
     if (!isCommandSafe(installCommand)) {
@@ -135,35 +119,44 @@ function installCodeServer() {
     
     execSync(installCommand, { stdio: 'inherit' });
     console.log('VS Code Server 安装成功');
+    return true;
   } catch (error) {
-    console.error('安装 VS Code Server 失败:', error.message);
-    process.exit(1);
+    console.error('通过npm安装 VS Code Server 失败:', error.message);
+    return false;
   }
 }
 
 /**
- * 启动VS Code Server服务
+ * 安装VS Code Server
  */
-function startVSCode() {
+function installCodeServer() {
+  console.log('正在安装 VS Code Server...');
+  
+  // 首先尝试通过预编译包安装
+  if (installCodeServerPrebuilt()) {
+    return;
+  }
+  
+  // 如果预编译包安装失败，尝试npm安装
+  if (installCodeServerNpm()) {
+    return;
+  }
+  
+  console.error('所有安装方法都失败了，请手动安装code-server');
+  process.exit(1);
+}
+
+/**
+ * 启动VS Code Server
+ */
+function startCodeServer() {
   try {
-    console.log('正在启动 VS Code Server 服务...');
-    
-    // 检查是否已安装code-server
     if (!isCodeServerInstalled()) {
       console.log('VS Code Server 未安装，正在自动安装...');
       installCodeServer();
     }
     
-    // 检查是否已在运行
-    try {
-      const checkCommand = `pkill -f "code-server.*--port ${VSCODE_PORT}"`;
-      if (isCommandSafe(checkCommand)) {
-        execSync(checkCommand, { stdio: 'ignore' });
-        console.log('已停止可能正在运行的旧 VS Code Server 服务');
-      }
-    } catch (error) {
-      // 如果没有运行的服务，pkill会返回错误，这是正常的
-    }
+    console.log('正在启动 VS Code Server...');
     
     // 创建配置目录
     const configDir = path.join(process.env.HOME, '.config', 'code-server');
@@ -174,67 +167,62 @@ function startVSCode() {
     // 创建配置文件
     const configPath = path.join(configDir, 'config.yaml');
     const configContent = `
-bind-addr: 0.0.0.0:${VSCODE_PORT}
+bind-addr: 0.0.0.0:8080
 auth: none
 cert: false
 `;
     
     fs.writeFileSync(configPath, configContent);
     
-    // 启动VS Code Server服务
-    const startCommand = `code-server --config ${configPath}`;
+    // 启动VS Code Server
+    const startCommand = 'code-server --config ' + configPath;
     if (!isCommandSafe(startCommand)) {
       console.error('安全错误：拒绝执行不安全的命令');
       process.exit(1);
     }
     
-    // 使用spawn启动服务，使其在后台运行
     const child = spawn('code-server', ['--config', configPath], {
       detached: true,
       stdio: 'ignore'
     });
     
     child.unref();
-    console.log(`VS Code Server 服务启动成功，端口: ${VSCODE_PORT}`);
-    console.log(`项目目录: ${projectRoot}`);
-    
-    // 获取VS Code Server服务状态
-    checkVSCodeStatus();
+    console.log('VS Code Server 启动成功');
+    console.log('访问地址: http://[你的设备IP]:8080');
   } catch (error) {
-    console.error('启动 VS Code Server 服务失败:', error.message);
+    console.error('启动 VS Code Server 失败:', error.message);
     process.exit(1);
   }
 }
 
 /**
- * 停止VS Code Server服务
+ * 停止VS Code Server
  */
-function stopVSCode() {
+function stopCodeServer() {
   try {
-    console.log('正在停止 VS Code Server 服务...');
+    console.log('正在停止 VS Code Server...');
     
-    const stopCommand = `pkill -f "code-server.*--port ${VSCODE_PORT}"`;
+    const stopCommand = 'pkill -f code-server';
     if (!isCommandSafe(stopCommand)) {
       console.error('安全错误：拒绝执行不安全的命令');
       process.exit(1);
     }
     
     execSync(stopCommand, { stdio: 'inherit' });
-    console.log('VS Code Server 服务已停止');
+    console.log('VS Code Server 已停止');
   } catch (error) {
-    console.error('停止 VS Code Server 服务失败:', error.message);
+    console.error('停止 VS Code Server 失败:', error.message);
     process.exit(1);
   }
 }
 
 /**
- * 检查VS Code Server服务状态
+ * 检查VS Code Server状态
  */
-function checkVSCodeStatus() {
+function checkCodeServerStatus() {
   try {
-    console.log('正在检查 VS Code Server 服务状态...');
+    console.log('正在检查 VS Code Server 状态...');
     
-    // 检查进程是否在运行
     const checkCommand = 'pgrep -f code-server';
     if (!isCommandSafe(checkCommand)) {
       console.error('安全错误：拒绝执行不安全的命令');
@@ -242,55 +230,20 @@ function checkVSCodeStatus() {
     }
     
     execSync(checkCommand, { stdio: 'ignore' });
+    console.log('✅ VS Code Server 正在运行');
     
-    // 检查端口是否在监听
-    const portCheckCommand = `netstat -tulpn | grep :${VSCODE_PORT}`;
-    if (!isCommandSafe(portCheckCommand)) {
-      console.error('安全错误：拒绝执行不安全的命令');
-      process.exit(1);
-    }
-    
-    const result = execSync(portCheckCommand, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
-    if (result.includes(`:${VSCODE_PORT}`)) {
-      console.log('✅ VS Code Server 服务正在运行');
-      
-      // 显示连接信息
-      try {
-        // 尝试多种方法获取IP地址
-        const ipCommands = [
-          'ip route get 1.1.1.1 | awk \'{print $7}\'',
-          'ifconfig | grep -Eo \'inet (addr:)?([0-9]*\\.){3}[0-9]*\' | grep -Eo \'([0-9]*\\.){3}[0-9]*\' | grep -v \'127.0.0.1\' | head -n 1',
-          'hostname -I | awk \'{print $1}\''
-        ];
-        
-        let localIP = null;
-        for (const ipCommand of ipCommands) {
-          if (isCommandSafe(ipCommand)) {
-            try {
-              localIP = execSync(ipCommand, { encoding: 'utf8' }).trim();
-              if (localIP) break;
-            } catch (e) {
-              // 继续尝试下一个命令
-            }
-          }
-        }
-        
-        if (localIP) {
-          console.log(`访问地址: http://${localIP}:${VSCODE_PORT}`);
-          console.log(`VS Code Server 已在你的设备上运行，你可以通过以下地址访问:`);
-          console.log(`http://${localIP}:${VSCODE_PORT}`);
-          console.log(`无需密码即可直接访问`);
-        } else {
-          console.log('无法获取IP地址信息');
-        }
-      } catch (error) {
-        console.log('无法获取IP地址信息');
+    // 显示连接信息
+    try {
+      const ipCommand = 'ip route get 1.1.1.1 | awk \'{print $7}\'';
+      if (isCommandSafe(ipCommand)) {
+        const localIP = execSync(ipCommand, { encoding: 'utf8' }).trim();
+        console.log(`访问地址: http://${localIP}:8080`);
       }
-    } else {
-      console.log('❌ VS Code Server 服务未运行');
+    } catch (error) {
+      console.log('无法获取IP地址信息');
     }
   } catch (error) {
-    console.log('❌ VS Code Server 服务未运行');
+    console.log('❌ VS Code Server 未运行');
   }
 }
 
@@ -299,23 +252,19 @@ function checkVSCodeStatus() {
  */
 function showHelp() {
   console.log(`
-VS Code Server 服务管理工具
+VS Code Server 安装和管理工具
 
 用法:
-  node start-vscode.js [选项]
+  node install-vscode.js [选项]
 
 选项:
-  start    启动VS Code Server服务
-  stop     停止VS Code Server服务
-  status   检查VS Code Server服务状态
+  install  安装VS Code Server
+  start    启动VS Code Server
+  stop     停止VS Code Server
+  status   检查VS Code Server状态
   help     显示此帮助信息
 
 如果没有提供选项，默认执行 status 命令。
-
-说明:
-  VS Code Server 是一个在浏览器中运行的 VS Code 版本。
-  启动后，你可以通过浏览器访问完整的 VS Code 环境，方便进行项目开发。
-  默认情况下，VS Code Server 将在端口 8080 上运行，并且不需要密码即可访问。
   `);
 }
 
@@ -325,14 +274,17 @@ function main() {
   const command = args[0] || 'status';
   
   switch (command) {
+    case 'install':
+      installCodeServer();
+      break;
     case 'start':
-      startVSCode();
+      startCodeServer();
       break;
     case 'stop':
-      stopVSCode();
+      stopCodeServer();
       break;
     case 'status':
-      checkVSCodeStatus();
+      checkCodeServerStatus();
       break;
     case 'help':
       showHelp();
@@ -350,8 +302,8 @@ if (require.main === module) {
 }
 
 module.exports = {
-  startVSCode,
-  stopVSCode,
-  checkVSCodeStatus,
-  isCommandSafe
+  installCodeServer,
+  startCodeServer,
+  stopCodeServer,
+  checkCodeServerStatus
 };
