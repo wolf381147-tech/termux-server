@@ -61,6 +61,17 @@ termux-server-suite/
    node termux-server-suite/system/wakelock-manager.js
    ```
 
+## 文档
+
+项目的完整文档位于 [termux-server-suite/docs/complete-guide.md](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-server-suite/docs/complete-guide.md)，包含以下内容：
+
+- 项目概述和架构说明
+- 目录结构详解
+- 核心组件介绍
+- 安装和使用指南
+- 开发指南
+- 安全指南
+
 ## 配置
 
 项目的配置文件位于 `termux-server-suite/config/` 目录中，包括连接信息和SSH配置。
