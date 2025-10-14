@@ -84,11 +84,12 @@ git pull origin main
 
 项目提供了一个交互式菜单界面，可以通过以下方式启动：
 
+首先需要给脚本添加执行权限：
 ```
-~/.shortcuts/menu-main
+chmod +x .shortcuts/menu-main
 ```
 
-或者直接运行：
+然后运行菜单：
 ```
 ./.shortcuts/menu-main
 ```

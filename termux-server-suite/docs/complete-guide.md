@@ -199,13 +199,19 @@ npm install
 
 项目提供了一个交互式菜单界面，可以通过以下方式启动：
 
+首先需要给脚本添加执行权限：
 ```bash
-~/.shortcuts/menu-main
+chmod +x .shortcuts/menu-main
 ```
 
-或者直接运行：
+然后运行菜单：
 ```bash
 ./.shortcuts/menu-main
+```
+
+或者直接运行（如果当前目录是项目根目录）：
+```bash
+bash .shortcuts/menu-main
 ```
 
 在交互界面中，您可以：

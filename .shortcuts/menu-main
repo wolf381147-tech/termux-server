@@ -17,8 +17,14 @@ show_usage() {
     echo "Termux Server Suite 交互式菜单"
     echo ""
     echo "使用方法:"
-    echo "  启动菜单: ~/.shortcuts/menu-main"
-    echo "  或者: ./.shortcuts/menu-main"
+    echo "  1. 首先添加执行权限:"
+    echo "     chmod +x .shortcuts/menu-main"
+    echo ""
+    echo "  2. 然后启动菜单:"
+    echo "     ./.shortcuts/menu-main"
+    echo ""
+    echo "  或者直接运行（无需添加权限）:"
+    echo "     bash .shortcuts/menu-main"
     echo ""
     echo "菜单功能:"
     echo "  1. 启动所有服务 - 启动SSH、Web以及后台监控服务"
@@ -34,6 +40,20 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     show_usage
     exit 0
 fi
+
+# 检查执行权限
+check_permissions() {
+    if [[ ! -x "$0" ]]; then
+        echo -e "${YELLOW}警告: 当前脚本没有执行权限${NC}"
+        echo "建议添加执行权限以方便使用:"
+        echo "  chmod +x .shortcuts/menu-main"
+        echo ""
+        echo "或者使用以下方式运行:"
+        echo "  bash .shortcuts/menu-main"
+        echo ""
+        read -p "按回车键继续以当前方式运行..."
+    fi
+}
 
 # 显示主菜单
 show_main_menu() {
@@ -245,8 +265,14 @@ show_help() {
     echo "  ⚙️  后台服务 - 包括健康检查、服务监控和唤醒锁管理"
     echo ""
     echo "使用方法:"
-    echo "  启动菜单: ~/.shortcuts/menu-main"
-    echo "  或者: ./.shortcuts/menu-main"
+    echo "  1. 添加执行权限:"
+    echo "     chmod +x .shortcuts/menu-main"
+    echo ""
+    echo "  2. 启动菜单:"
+    echo "     ./.shortcuts/menu-main"
+    echo ""
+    echo "  或者直接运行（无需添加权限）:"
+    echo "     bash .shortcuts/menu-main"
     echo ""
     echo "更新项目:"
     echo "  拉取最新更新: git pull origin main"
@@ -258,6 +284,9 @@ show_help() {
     echo ""
     read -p "按回车键返回主菜单..."
 }
+
+# 检查权限
+check_permissions
 
 # 主菜单循环
 main_menu_loop() {
