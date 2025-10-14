@@ -8,7 +8,7 @@
 
 ### 1. 通用服务管理器
 
-创建了 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L9-L163) 类，统一处理服务的启动、停止和监控逻辑。
+创建了 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L12-L185) 类，统一处理服务的启动、停止和监控逻辑。
 
 **改进前问题：**
 - SSH服务 ([start-sshd.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/start-sshd.js)) 和 Web服务 ([start-web.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/start-web.js)) 有大量重复代码
@@ -16,7 +16,7 @@
 - 难以扩展新的服务类型
 
 **改进后优势：**
-- 通过 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L9-L163) 统一管理所有服务
+- 通过 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js#L12-L185) 统一管理所有服务
 - 减少了约60%的服务管理代码重复
 - 添加新服务类型只需配置参数，无需编写新的管理逻辑
 - 一致的事件发布机制
@@ -62,6 +62,19 @@
 - [menu-main](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/menu-main) 提供统一的菜单入口
 - 通过命令行参数控制不同行为，避免创建多个独立脚本
 
+### 5. 菜单系统优化
+
+**改进前问题：**
+- 存在多个层级的菜单系统，功能重叠
+- [menu-services](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/menu-services) 与独立服务菜单功能重复
+- 用户可能不清楚应该使用哪个入口
+
+**改进后优势：**
+- 简化为单层菜单结构，避免功能重叠
+- 每个服务的管理功能整合在各自的菜单中
+- 直接调用命令行工具，充分利用其参数化能力
+- 更清晰的用户体验，减少用户在菜单间切换的需要
+
 ## 重构前后的文件对比
 
 | 文件 | 重构前 | 重构后 | 代码减少 |
@@ -94,7 +107,7 @@
 ### 4. 用户体验优化
 - 减少了大量冗余脚本，使项目更清晰
 - 统一的命令接口，更易于使用和记忆
-- 层次化的菜单系统，操作更直观
+- 简化的菜单系统，操作更直观
 
 ## 后续建议
 
@@ -115,4 +128,4 @@
 
 ## 结论
 
-本次重构成功解决了项目中的代码冗余和重复问题，通过引入通用服务管理器和优化模块结构，显著提高了代码质量和可维护性。重构后的项目更加模块化、可扩展，并为未来功能扩展奠定了良好基础。特别是对 .shortcuts 目录的重构，将 60 多个功能重复的脚本精简为 4 个统一管理脚本，极大地改善了用户体验和项目维护性。
+本次重构成功解决了项目中的代码冗余和重复问题，通过引入通用服务管理器和优化模块结构，显著提高了代码质量和可维护性。重构后的项目更加模块化、可扩展，并为未来功能扩展奠定了良好基础。特别是对 .shortcuts 目录的重构，将 60 多个功能重复的脚本精简为 4 个统一管理脚本，极大地改善了用户体验和项目维护性。菜单系统的优化进一步简化了用户操作流程，避免了功能重复和用户困惑。
