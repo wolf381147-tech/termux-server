@@ -15,7 +15,6 @@ termux-projects/
 │   ├── service-manager.js # 通用服务管理器
 │   └── event-bus.js       # 事件总线
 ├── my-website/          # 默认托管网站
-├── projects/            # 其他项目文件
 └── tests/               # 测试文件
 ```
 
@@ -52,7 +51,6 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 默认托管的网站文件，通过Python HTTP服务器提供访问。
 
 ### 其他功能目录
-- projects/ - 其他项目文件
 - tests/ - 测试文件
 
 ## 文件说明
