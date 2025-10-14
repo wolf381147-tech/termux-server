@@ -3,7 +3,7 @@
 ## 目录结构
 
 ```
-termux-projects/
+termux-server-suite/
 ├── config/              # 配置文件目录
 ├── docs/                # 项目文档目录
 ├── system/              # 核心系统服务
