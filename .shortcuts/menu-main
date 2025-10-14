@@ -1,0 +1,271 @@
+#!/bin/bash
+
+# 主菜单系统
+# 集成所有功能模块的统一入口
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# 显示主菜单
+show_main_menu() {
+    clear
+    echo "=========================================="
+    echo "           🚀 Termux 服务器项目"
+    echo "=========================================="
+    echo "1. 🌐 SSH 服务管理"
+    echo "2. 🌐 Web 服务管理"
+    echo "3. 💾 备份工具"
+    echo "4. 📁 文件管理器"
+    echo "5. ⚙️  系统配置"
+    echo "6. 📊 系统状态"
+    echo "7. 🛠️  系统工具"
+    echo "8. 📚 帮助文档"
+    echo "0. 🚪 退出"
+    echo "=========================================="
+}
+
+# SSH服务管理菜单
+show_ssh_menu() {
+    clear
+    echo "=========================================="
+    echo "           🔐 SSH 服务管理"
+    echo "=========================================="
+    echo "1. 启动SSH服务"
+    echo "2. 启动优化SSH服务（防息屏断联）"
+    echo "3. 启动智能SSH模式"
+    echo "4. 停止SSH服务"
+    echo "5. 查看SSH状态"
+    echo "6. 显示连接信息"
+    echo "0. 返回主菜单"
+    echo "=========================================="
+}
+
+# Web服务管理菜单
+show_web_menu() {
+    clear
+    echo "=========================================="
+    echo "           🌐 Web 服务管理"
+    echo "=========================================="
+    echo "1. 启动Web服务器"
+    echo "2. 启动Web文件管理器"
+    echo "3. 启动Web GUI"
+    echo "4. 停止Web服务"
+    echo "5. 查看Web服务状态"
+    echo "6. 显示连接信息"
+    echo "0. 返回主菜单"
+    echo "=========================================="
+}
+
+# 备份工具菜单
+show_backup_menu() {
+    clear
+    echo "=========================================="
+    echo "           💾 备份工具"
+    echo "=========================================="
+    echo "1. 项目备份"
+    echo "2. 系统备份"
+    echo "3. 完整备份"
+    echo "4. 终极备份"
+    echo "5. 列出备份文件"
+    echo "6. 清理旧备份"
+    echo "0. 返回主菜单"
+    echo "=========================================="
+}
+
+# 处理SSH菜单选项
+handle_ssh_menu() {
+    while true; do
+        show_ssh_menu
+        read -p "请选择: " ssh_choice
+        
+        case $ssh_choice in
+            1)
+                ~/.shortcuts/service-ssh start
+                read -p "按回车键继续..."
+                ;;
+            2)
+                ~/.shortcuts/service-ssh start --optimized
+                read -p "按回车键继续..."
+                ;;
+            3)
+                ~/.shortcuts/service-ssh start --smart-mode
+                ;;
+            4)
+                ~/.shortcuts/service-ssh stop
+                read -p "按回车键继续..."
+                ;;
+            5)
+                ~/.shortcuts/service-ssh status
+                read -p "按回车键继续..."
+                ;;
+            6)
+                ~/.shortcuts/service-ssh info --with-guide
+                read -p "按回车键继续..."
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}无效选择，请重新输入${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# 处理Web菜单选项
+handle_web_menu() {
+    while true; do
+        show_web_menu
+        read -p "请选择: " web_choice
+        
+        case $web_choice in
+            1)
+                ~/.shortcuts/service-web start --type server
+                read -p "按回车键继续..."
+                ;;
+            2)
+                ~/.shortcuts/service-web start --type manager --background
+                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                read -p "按回车键继续..."
+                ;;
+            3)
+                ~/.shortcuts/service-web start --type gui
+                read -p "按回车键继续..."
+                ;;
+            4)
+                ~/.shortcuts/service-web stop --type server
+                ~/.shortcuts/service-web stop --type manager
+                ~/.shortcuts/service-web stop --type gui
+                echo -e "${GREEN}所有Web服务已停止${NC}"
+                read -p "按回车键继续..."
+                ;;
+            5)
+                ~/.shortcuts/service-web status --type server
+                ~/.shortcuts/service-web status --type manager
+                ~/.shortcuts/service-web status --type gui
+                read -p "按回车键继续..."
+                ;;
+            6)
+                ~/.shortcuts/service-web info --with-guide
+                read -p "按回车键继续..."
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}无效选择，请重新输入${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# 处理备份菜单选项
+handle_backup_menu() {
+    while true; do
+        show_backup_menu
+        read -p "请选择: " backup_choice
+        
+        case $backup_choice in
+            1)
+                ~/.shortcuts/tool-backup backup --type project
+                read -p "按回车键继续..."
+                ;;
+            2)
+                ~/.shortcuts/tool-backup backup --type system
+                read -p "按回车键继续..."
+                ;;
+            3)
+                ~/.shortcuts/tool-backup backup --type full
+                read -p "按回车键继续..."
+                ;;
+            4)
+                ~/.shortcuts/tool-backup backup --type ultimate
+                read -p "按回车键继续..."
+                ;;
+            5)
+                ~/.shortcuts/tool-backup list
+                read -p "按回车键继续..."
+                ;;
+            6)
+                ~/.shortcuts/tool-backup clean
+                read -p "按回车键继续..."
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}无效选择，请重新输入${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# 主程序循环
+main() {
+    while true; do
+        show_main_menu
+        read -p "请选择: " main_choice
+        
+        case $main_choice in
+            1)
+                handle_ssh_menu
+                ;;
+            2)
+                handle_web_menu
+                ;;
+            3)
+                handle_backup_menu
+                ;;
+            4)
+                echo -e "${YELLOW}启动文件管理器...${NC}"
+                ~/.shortcuts/service-web start --type manager --background
+                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                read -p "按回车键继续..."
+                ;;
+            5)
+                echo -e "${YELLOW}系统配置功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            6)
+                echo -e "${YELLOW}显示系统状态...${NC}"
+                if command -v neofetch >/dev/null 2>&1; then
+                    neofetch
+                else
+                    echo "系统信息:"
+                    uname -a
+                    echo "用户: $(whoami)"
+                    echo "当前目录: $(pwd)"
+                fi
+                read -p "按回车键继续..."
+                ;;
+            7)
+                echo -e "${YELLOW}系统工具功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            8)
+                echo -e "${YELLOW}帮助文档功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            0)
+                echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
+                exit 0
+                ;;
+            *)
+                echo -e "${RED}无效选择，请重新输入${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
+# 执行主程序
+main
