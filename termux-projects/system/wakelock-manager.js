@@ -1,14 +1,36 @@
 const { exec } = require('child_process');
-const config = require('../config/app-config');
+const { get } = require('../config/config-manager');
+const eventBus = require('./event-bus');
 
 class WakelockManager {
     constructor() {
         this.isLocked = false;
         // 从配置中获取检查间隔
-        this.checkInterval = config.wakelock.checkInterval;
+        this.checkInterval = get('wakelock.checkInterval');
         // 从配置中获取电池检查设置
-        this.enableBatteryCheck = config.wakelock.enableBatteryCheck;
-        this.minBatteryLevel = config.wakelock.minBatteryLevel;
+        this.enableBatteryCheck = get('wakelock.enableBatteryCheck');
+        this.minBatteryLevel = get('wakelock.minBatteryLevel');
+        this.autoReleaseOnLowBattery = get('wakelock.autoReleaseOnLowBattery');
+        
+        // 订阅相关事件
+        eventBus.subscribe('service.health.failed', (data) => {
+            console.log(`收到服务异常通知: ${data.service}`);
+        });
+        
+        eventBus.subscribe('system.battery.low', (data) => {
+            if (this.autoReleaseOnLowBattery && this.isLocked) {
+                console.log(`检测到低电量 (${data.level}%)，自动释放唤醒锁`);
+                this.release();
+            }
+        });
+        
+        eventBus.subscribe('config.updated', (data) => {
+            console.log('配置已更新，重新加载配置...');
+            this.checkInterval = get('wakelock.checkInterval');
+            this.enableBatteryCheck = get('wakelock.enableBatteryCheck');
+            this.minBatteryLevel = get('wakelock.minBatteryLevel');
+            this.autoReleaseOnLowBattery = get('wakelock.autoReleaseOnLowBattery');
+        });
     }
     
     acquire() {
@@ -20,10 +42,24 @@ class WakelockManager {
                         if (!error) {
                             this.isLocked = true;
                             console.log('唤醒锁已获取:', new Date().toISOString());
+                            // 发布唤醒锁获取事件
+                            eventBus.publish('wakelock.acquired', {
+                                timestamp: new Date().toISOString()
+                            });
+                        } else {
+                            // 发布唤醒锁获取失败事件
+                            eventBus.publish('wakelock.acquire.failed', {
+                                error: error.message,
+                                timestamp: new Date().toISOString()
+                            });
                         }
                     });
                 } else {
                     console.log('电池电量过低，跳过获取唤醒锁');
+                    // 发布电池电量过低事件
+                    eventBus.publish('wakelock.skipped.lowbattery', {
+                        timestamp: new Date().toISOString()
+                    });
                 }
             });
         } else {
@@ -31,6 +67,16 @@ class WakelockManager {
                 if (!error) {
                     this.isLocked = true;
                     console.log('唤醒锁已获取:', new Date().toISOString());
+                    // 发布唤醒锁获取事件
+                    eventBus.publish('wakelock.acquired', {
+                        timestamp: new Date().toISOString()
+                    });
+                } else {
+                    // 发布唤醒锁获取失败事件
+                    eventBus.publish('wakelock.acquire.failed', {
+                        error: error.message,
+                        timestamp: new Date().toISOString()
+                    });
                 }
             });
         }
@@ -41,6 +87,16 @@ class WakelockManager {
             if (!error) {
                 this.isLocked = false;
                 console.log('唤醒锁已释放:', new Date().toISOString());
+                // 发布唤醒锁释放事件
+                eventBus.publish('wakelock.released', {
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                // 发布唤醒锁释放失败事件
+                eventBus.publish('wakelock.release.failed', {
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
             }
         });
     }
@@ -60,8 +116,19 @@ class WakelockManager {
                         
                         if (batteryLevel < this.minBatteryLevel) {
                             console.log(`电池电量 ${batteryLevel}% 低于阈值 ${this.minBatteryLevel}%`);
+                            // 发布低电量事件
+                            eventBus.publish('system.battery.low', {
+                                level: batteryLevel,
+                                threshold: this.minBatteryLevel,
+                                timestamp: new Date().toISOString()
+                            });
                             resolve(false);
                         } else {
+                            // 发布正常电量事件
+                            eventBus.publish('system.battery.normal', {
+                                level: batteryLevel,
+                                timestamp: new Date().toISOString()
+                            });
                             resolve(true);
                         }
                     } catch (parseError) {
@@ -83,6 +150,12 @@ class WakelockManager {
         }, this.checkInterval);
         
         console.log('唤醒锁监控已启动');
+        
+        // 发布唤醒锁监控启动事件
+        eventBus.publish('wakelock.monitoring.started', {
+            interval: this.checkInterval,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 
@@ -93,5 +166,10 @@ wakelock.startMonitoring();
 // 保持进程运行
 process.on('SIGINT', () => {
     wakelock.release();
+    console.log('停止唤醒锁管理...');
+    // 发布唤醒锁管理停止事件
+    eventBus.publish('wakelock.manager.stopped', {
+        timestamp: new Date().toISOString()
+    });
     process.exit(0);
 });
