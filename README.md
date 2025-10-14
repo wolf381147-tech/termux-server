@@ -1,80 +1,136 @@
-# Termux Server Project
+# Termux Server Suite
 
-这是一个在Android设备上使用Termux构建的完整服务器解决方案。该项目提供了多种服务和监控功能，可以在移动设备上运行一个功能完备的服务器环境。
+一个在 Android 设备上使用 Termux 构建的完整服务器解决方案。该项目提供多种服务和监控功能，可以在移动设备上运行功能完备的服务器环境。
 
-## 项目特点
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Termux](https://img.shields.io/badge/termux-project-blue)](https://github.com/termux/termux-app)
 
-- SSH服务管理
-- Web服务器托管
-- 系统健康检查
-- 服务监控和自动恢复
-- 唤醒锁管理（防止设备休眠）
-- 自动化脚本集合
+## 功能特性
+
+- 🔐 SSH 服务管理 - 安全远程访问
+- 🌐 Web 服务器托管 - 静态网站服务
+- 🏥 系统健康检查 - 服务可用性监控
+- 🛡️ 服务监控与自动恢复 - 保证服务持续运行
+- 🔋 唤醒锁管理 - 防止设备休眠导致服务中断
+- 📊 统一监控面板 - 通过浏览器实时查看系统状态
+- 🚀 快捷脚本系统 - 简化日常操作
 
 ## 目录结构
 
 ```
-termux-projects/
-├── system/              # 核心系统服务
-├── my-website/          # 默认托管网站
-├── config/              # 配置文件
-├── data-science/        # 数据科学相关脚本
-├── file-manager/        # 文件管理工具
-├── projects/            # 其他项目文件
-├── scripts/             # 实用脚本
-└── web-gui/            # Web图形界面
+.
+├── termux-projects/
+│   ├── system/           # 核心系统服务
+│   ├── my-website/       # 服务器监控面板
+│   ├── config/           # 配置文件
+│   └── docs/             # 项目文档
+├── .shortcuts/           # Termux 快捷脚本
+└── pm2.config.js         # PM2 配置文件
 ```
 
 ## 核心组件
 
-### 1. SSH服务 (start-sshd.js)
-启动和管理SSH服务，允许远程连接到设备。
+### 1. SSH 服务管理 (`start-sshd.js`)
+启动和管理 SSH 服务，允许安全远程连接到设备。
 
-### 2. Web服务器 (start-web.js)
-启动Python HTTP服务器托管静态网站。
+### 2. Web 服务器 (`start-web.js`)
+启动 Python HTTP 服务器托管静态网站和监控面板。
 
-### 3. 健康检查 (health-check.js)
+### 3. 健康检查 (`health-check.js`)
 定期检查关键服务的可用性：
-- SSH服务 (端口 8022)
-- Web服务 (端口 8000)
+- SSH 服务 (端口 8022)
+- Web 服务 (端口 8000)
 
-### 4. 服务监控 (service-monitor.js)
-监控PM2管理的服务并在服务停止时自动重启。
+### 4. 服务监控 (`service-monitor.js`)
+监控 PM2 管理的服务并在服务停止时自动重启。
 
-### 5. 唤醒锁管理 (wakelock-manager.js)
-管理设备唤醒锁，防止CPU进入休眠状态。
+### 5. 唤醒锁管理 (`wakelock-manager.js`)
+管理设备唤醒锁，防止 CPU 进入休眠状态。
 
-## 安装和使用
+### 6. 统一监控面板 (`my-website/index.html`)
+通过浏览器访问的实时服务器监控面板，提供系统状态、服务信息和日志查看功能。
 
-1. 克隆项目到Termux环境中：
-   ```
+## 安装说明
+
+### 前置要求
+- [Termux](https://termux.com/) 应用已安装
+- 设备已连接网络
+
+### 安装步骤
+
+1. 克隆项目到 Termux 环境中：
+   ```bash
    git clone <repository-url>
+   cd termux-server-suite
    ```
 
-2. 安装依赖（如果有的话）：
-   ```
+2. 安装依赖：
+   ```bash
    npm install
    ```
 
-3. 使用Node.js运行相应服务：
-   ```
-   node termux-projects/system/start-sshd.js
-   node termux-projects/system/start-web.js
-   node termux-projects/system/health-check.js
-   node termux-projects/system/service-monitor.js
-   node termux-projects/system/wakelock-manager.js
+3. 启动所有服务：
+   ```bash
+   npm run start:all
    ```
 
-## 配置
+## 使用方法
 
-项目的配置文件位于 termux-projects/config/ 目录中，包括连接信息和SSH配置。
+### 命令行方式
 
-## 注意事项
+```bash
+# 启动所有服务
+npm run start:all
+
+# 停止所有服务
+npm run stop:all
+
+# 重启所有服务
+npm run restart:all
+
+# 查看服务状态
+npm run status
+
+# 查看服务日志
+npm run logs
+
+# 单独启动某个服务（开发环境）
+npm run dev:sshd
+npm run dev:web
+npm run dev:health-check
+npm run dev:service-monitor
+npm run dev:wakelock
+```
+
+### 快捷脚本方式
+
+Termux 提供了图形化快捷菜单，可以通过 Termux 的通知栏快速访问：
+
+1. 打开 Termux 应用
+2. 下拉通知栏
+3. 点击 "Termux:Widget" 通知
+4. 选择相应功能
+
+快捷脚本包括：
+- 🖥️ 服务器监控面板
+- 💾 系统状态快照工具
+- 🚪 退出菜单
+
+## 配置管理
+
+项目的配置文件位于 `termux-projects/config/` 目录中。支持通过环境变量覆盖默认配置，详情请参考 [配置文档](termux-projects/docs/config-usage.md)。
+
+## 安全说明
 
 - 请勿将敏感信息提交到版本控制系统
 - 在公网环境下运行服务时，请确保采取适当的安全措施
 - 长时间运行唤醒锁可能会消耗电池电量
+- 详细安全指南请参考 [安全文档](termux-projects/docs/security-guide.md)
 
-## 贡献
+## 贡献指南
 
-欢迎提交Issue和Pull Request来改进项目。
+欢迎提交 Issue 和 Pull Request 来改进项目。请参考 [开发指南](termux-projects/docs/DEVELOPMENT.md) 了解项目架构和开发规范。
+
+## 许可证
+
+本项目采用 MIT 许可证，详情请参考 [LICENSE](LICENSE) 文件。

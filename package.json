@@ -1,7 +1,7 @@
 {
-  "name": "termux-projects",
+  "name": "termux-server-suite",
   "version": "1.0.0",
-  "description": "Termux服务器项目，集成SSH、Web服务器和系统监控功能",
+  "description": "Termux服务器套件，集成SSH、Web服务器和系统监控功能",
   "scripts": {
     "start:sshd": "node termux-projects/system/start-sshd.js",
     "start:web": "node termux-projects/system/start-web.js",
@@ -24,10 +24,19 @@
     "termux",
     "ssh",
     "web-server",
-    "server-management"
+    "server-management",
+    "android-server"
   ],
-  "author": "Termux Developer",
+  "author": "Termux Server Suite Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/termux-server-suite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/termux-server-suite/issues"
+  },
+  "homepage": "https://github.com/your-username/termux-server-suite#readme",
   "dependencies": {
     "pm2": "^5.3.0"
   },

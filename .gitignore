@@ -39,9 +39,6 @@ Icon?
 # SSH keys and config
 .ssh/
 
-# Temporary scripts
-.shortcuts/set_permissions.bat
-
 # System-specific files
 installed-packages.txt
 
@@ -52,9 +49,44 @@ __pycache__/
 
 # Test coverage
 coverage/
+*.lcov
 
 # Jest
 .jest/
+
+# Package lock files
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Documentation builds
+docs/_build/
+
+# Runtime data
+.pid
+.pid.lock
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Editor directories and files
+.atom/
+.build/
+.pydevproject
+.settings/
+.tm_properties
+*.sublime-project
+*.sublime-workspace
 
 # Termux specific files
 .shortcuts/
@@ -74,10 +106,6 @@ termux-projects/logs/
 *.exe
 *.o
 *.so
-
-# Temporary files
-tmp/
-temp/
 
 # Package files
 *.tar.gz
