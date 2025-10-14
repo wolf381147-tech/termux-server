@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 主菜单系统
-# 集成所有功能模块的统一入口
+# Termux 服务器主菜单
+# 简化版服务器管理界面
 
 # 颜色定义
 RED='\033[0;31m'
@@ -18,132 +18,70 @@ show_main_menu() {
     echo "=========================================="
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
-    echo "1. 🌐 服务管理"
-    echo "2. 💾 备份工具"
-    echo "3. 📁 文件管理器"
-    echo "4. ⚙️  系统配置"
-    echo "5. 📊 系统状态"
-    echo "6. 🛠️  系统工具"
-    echo "7. 📚 帮助文档"
-    echo "0. 🚪 退出"
+    echo "1. ▶️  启动所有服务"
+    echo "2. ⏹️  停止所有服务"
+    echo "3. 🖥️  服务器监控面板"
+    echo "4. 📚  帮助文档"
+    echo "0. 🚪  退出"
     echo "=========================================="
 }
 
-# 服务管理菜单
-show_service_menu() {
+# 启动所有服务
+start_all_services() {
     clear
     echo "=========================================="
-    echo "           🌐 服务管理"
+    echo "           🚀 启动所有服务"
     echo "=========================================="
-    echo "1. SSH 服务管理"
-    echo "2. Web 服务管理"
-    echo "3. 查看所有服务状态"
-    echo "4. 启动所有服务"
-    echo "5. 停止所有服务"
-    echo "0. 返回主菜单"
-    echo "=========================================="
+    
+    echo "启动SSH服务..."
+    ssh_start
+    
+    echo ""
+    echo "启动Web服务..."
+    web_start
+    
+    echo ""
+    echo "启动健康检查服务..."
+    # 使用PM2启动健康检查
+    npx pm2 start termux-server-suite/system/health-check.js --name health-check > /dev/null 2>&1
+    
+    echo ""
+    echo "启动服务监控..."
+    # 使用PM2启动服务监控
+    npx pm2 start termux-server-suite/system/service-monitor.js --name service-monitor > /dev/null 2>&1
+    
+    echo ""
+    echo "启动唤醒锁管理..."
+    # 使用PM2启动唤醒锁管理
+    npx pm2 start termux-server-suite/system/wakelock-manager.js --name wakelock-manager > /dev/null 2>&1
+    
+    echo ""
+    echo -e "${GREEN}所有服务已启动${NC}"
+    read -p "按回车键继续..."
 }
 
-# SSH服务管理
-manage_ssh_service() {
+# 停止所有服务
+stop_all_services() {
     clear
     echo "=========================================="
-    echo "           🔐 SSH 服务管理"
-    echo "=========================================="
-    echo "1. 启动SSH服务"
-    echo "2. 停止SSH服务"
-    echo "3. 查看SSH状态"
-    echo "4. 显示连接信息"
-    echo "0. 返回服务管理"
+    echo "           ⏹️  停止所有服务"
     echo "=========================================="
     
-    read -p "请选择操作 [0-4]: " choice
+    echo "停止SSH服务..."
+    ssh_stop
     
-    case $choice in
-        1)
-            echo "启动SSH服务..."
-            ssh_start
-            read -p "按回车键继续..."
-            manage_ssh_service
-            ;;
-        2)
-            echo "停止SSH服务..."
-            ssh_stop
-            read -p "按回车键继续..."
-            manage_ssh_service
-            ;;
-        3)
-            echo "查看SSH状态..."
-            ssh_status
-            read -p "按回车键继续..."
-            manage_ssh_service
-            ;;
-        4)
-            echo "显示连接信息..."
-            ssh_info
-            read -p "按回车键继续..."
-            manage_ssh_service
-            ;;
-        0)
-            show_service_menu
-            ;;
-        *)
-            echo "无效选择"
-            read -p "按回车键继续..."
-            manage_ssh_service
-            ;;
-    esac
-}
-
-# Web服务管理
-manage_web_service() {
-    clear
-    echo "=========================================="
-    echo "           🌐 Web 服务管理"
-    echo "=========================================="
-    echo "1. 启动Web服务"
-    echo "2. 停止Web服务"
-    echo "3. 查看Web状态"
-    echo "4. 显示连接信息"
-    echo "0. 返回服务管理"
-    echo "=========================================="
+    echo ""
+    echo "停止Web服务..."
+    web_stop
     
-    read -p "请选择操作 [0-4]: " choice
+    echo ""
+    echo "停止PM2管理的服务..."
+    # 停止PM2管理的所有服务
+    npx pm2 stop all > /dev/null 2>&1
     
-    case $choice in
-        1)
-            echo "启动Web服务..."
-            web_start
-            read -p "按回车键继续..."
-            manage_web_service
-            ;;
-        2)
-            echo "停止Web服务..."
-            web_stop
-            read -p "按回车键继续..."
-            manage_web_service
-            ;;
-        3)
-            echo "查看Web状态..."
-            web_status
-            read -p "按回车键继续..."
-            manage_web_service
-            ;;
-        4)
-            echo "显示连接信息..."
-            web_info
-            read -p "按回车键继续..."
-            manage_web_service
-            ;;
-        0)
-            show_service_menu
-            ;;
-        *)
-            echo "无效选择"
-            read -p "按回车键继续..."
-            manage_web_service
-            ;;
-    esac
+    echo ""
+    echo -e "${GREEN}所有服务已停止${NC}"
+    read -p "按回车键继续..."
 }
 
 # SSH服务操作函数
@@ -171,28 +109,6 @@ ssh_stop() {
     else
         echo -e "${YELLOW}未找到运行中的SSH服务${NC}"
     fi
-}
-
-ssh_status() {
-    if pgrep -f "sshd" > /dev/null; then
-        echo -e "${GREEN}SSH服务正在运行${NC}"
-    else
-        echo -e "${RED}SSH服务未运行${NC}"
-    fi
-}
-
-ssh_info() {
-    local local_ip=$(ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
-    local public_ip=$(curl -s https://api.ipify.org 2>/dev/null || echo "无法获取")
-    
-    echo "SSH连接信息:"
-    echo "  用户名: $(whoami)"
-    echo "  端口: 8022"
-    echo "  本地IP: ${local_ip:-未连接}"
-    echo "  公网IP: ${public_ip}"
-    echo ""
-    echo "连接命令:"
-    echo "  ssh -p 8022 $(whoami)@${local_ip:-localhost}"
 }
 
 # Web服务操作函数
@@ -232,155 +148,101 @@ web_stop() {
     fi
 }
 
-web_status() {
-    local port=8000
-    if pgrep -f "python.*http.server.*${port}" > /dev/null; then
-        echo -e "${GREEN}Web服务正在运行${NC}"
+# 显示服务器监控面板
+show_monitor_panel() {
+    clear
+    echo "=========================================="
+    echo "           🖥️  服务器监控面板"
+    echo "=========================================="
+    
+    # 显示服务状态
+    echo "服务状态:"
+    if pgrep -f "sshd" > /dev/null; then
+        echo -e "  🔐 SSH服务: ${GREEN}运行中${NC}"
     else
-        echo -e "${RED}Web服务未运行${NC}"
+        echo -e "  🔐 SSH服务: ${RED}已停止${NC}"
     fi
-}
-
-web_info() {
+    
+    if pgrep -f "python.*http.server.*8000" > /dev/null; then
+        echo -e "  🌐 Web服务: ${GREEN}运行中${NC}"
+    else
+        echo -e "  🌐 Web服务: ${RED}已停止${NC}"
+    fi
+    
+    # 显示PM2服务状态
+    echo ""
+    echo "后台服务状态:"
+    npx pm2 list
+    
+    # 显示系统信息
+    echo ""
+    echo "系统信息:"
+    echo "  用户名: $(whoami)"
+    echo "  系统时间: $(date)"
+    
+    # 显示网络信息
+    echo ""
+    echo "网络信息:"
     local local_ip=$(ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
     local public_ip=$(curl -s https://api.ipify.org 2>/dev/null || echo "无法获取")
-    local port=8000
-    
-    echo "Web服务信息:"
-    echo "  端口: $port"
     echo "  本地IP: ${local_ip:-未连接}"
     echo "  公网IP: ${public_ip}"
+    
+    # 显示连接信息
     echo ""
-    echo "访问地址:"
-    echo "  http://${local_ip:-localhost}:$port"
+    echo "连接信息:"
+    echo "  SSH: ssh -p 8022 $(whoami)@${local_ip:-localhost}"
+    echo "  Web: http://${local_ip:-localhost}:8000"
+    
+    echo ""
+    read -p "按回车键返回主菜单..."
 }
 
-# 查看所有服务状态
-view_all_services() {
+# 显示帮助文档
+show_help() {
     clear
     echo "=========================================="
-    echo "           📊 所有服务状态"
+    echo "           📚 帮助文档"
     echo "=========================================="
-    
-    echo "SSH服务:"
-    ssh_status
-    
+    echo "Termux 服务器项目是一个在Android设备上运行的完整服务器解决方案。"
     echo ""
-    echo "Web服务:"
-    web_status
-    
+    echo "主要功能:"
+    echo "  ▶️  启动所有服务 - 启动SSH、Web以及后台监控服务"
+    echo "  ⏹️  停止所有服务 - 停止所有正在运行的服务"
+    echo "  🖥️  服务器监控面板 - 查看服务状态和系统信息"
+    echo "  📚 帮助文档 - 显示帮助信息"
     echo ""
-    read -p "按回车键返回..."
-}
-
-# 启动所有服务
-start_all_services() {
-    clear
-    echo "=========================================="
-    echo "           🚀 启动所有服务"
-    echo "=========================================="
-    
-    echo "启动SSH服务..."
-    ssh_start
-    
+    echo "服务详情:"
+    echo "  🔐 SSH服务 - 端口 8022，允许远程连接到设备"
+    echo "  🌐 Web服务 - 端口 8000，托管静态网站内容"
+    echo "  ⚙️  后台服务 - 包括健康检查、服务监控和唤醒锁管理"
     echo ""
-    echo "启动Web服务..."
-    web_start
-    
+    echo "注意事项:"
+    echo "  - 长时间运行唤醒锁可能会消耗电池电量"
+    echo "  - 在公网环境下运行服务时，请确保采取适当的安全措施"
+    echo "  - 请勿将敏感信息提交到版本控制系统"
     echo ""
-    read -p "按回车键返回..."
-}
-
-# 停止所有服务
-stop_all_services() {
-    clear
-    echo "=========================================="
-    echo "           🛑 停止所有服务"
-    echo "=========================================="
-    
-    echo "停止SSH服务..."
-    ssh_stop
-    
-    echo ""
-    echo "停止Web服务..."
-    web_stop
-    
-    echo ""
-    read -p "按回车键返回..."
-}
-
-# 服务管理主循环
-service_menu_loop() {
-    while true; do
-        show_service_menu
-        read -p "请选择操作 [0-5]: " choice
-        
-        case $choice in
-            1)
-                manage_ssh_service
-                ;;
-            2)
-                manage_web_service
-                ;;
-            3)
-                view_all_services
-                ;;
-            4)
-                start_all_services
-                ;;
-            5)
-                stop_all_services
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo "无效选择"
-                read -p "按回车键继续..."
-                ;;
-        esac
-    done
+    read -p "按回车键返回主菜单..."
 }
 
 # 主菜单循环
 main_menu_loop() {
     while true; do
         show_main_menu
-        read -p "请选择操作 [0-7]: " choice
+        read -p "请选择操作 [0-4]: " choice
         
         case $choice in
             1)
-                service_menu_loop
+                start_all_services
                 ;;
             2)
-                echo "备份工具功能..."
-                # 这里调用备份工具
-                read -p "按回车键继续..."
+                stop_all_services
                 ;;
             3)
-                echo "文件管理器功能..."
-                # 这里调用文件管理器
-                read -p "按回车键继续..."
+                show_monitor_panel
                 ;;
             4)
-                echo "系统配置功能..."
-                # 这里调用系统配置
-                read -p "按回车键继续..."
-                ;;
-            5)
-                echo "系统状态功能..."
-                # 这里调用系统状态
-                read -p "按回车键继续..."
-                ;;
-            6)
-                echo "系统工具功能..."
-                # 这里调用系统工具
-                read -p "按回车键继续..."
-                ;;
-            7)
-                echo "帮助文档功能..."
-                # 这里调用帮助文档
-                read -p "按回车键继续..."
+                show_help
                 ;;
             0)
                 echo "退出程序"

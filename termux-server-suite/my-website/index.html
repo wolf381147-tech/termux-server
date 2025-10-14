@@ -123,6 +123,29 @@
             overflow-y: auto;
             font-size: 0.9em;
         }
+        .control-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .control-btn.start {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .control-btn.stop {
+            background: rgba(244, 67, 54, 0.3);
+        }
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
@@ -138,12 +161,17 @@
     <div class="container">
         <h1>🖥️ Termux 服务器监控面板</h1>
         
+        <div class="control-buttons">
+            <button class="control-btn start" onclick="startAllServices()">▶️ 启动所有服务</button>
+            <button class="control-btn stop" onclick="stopAllServices()">⏹️ 停止所有服务</button>
+            <button class="refresh-btn" onclick="refreshData()">🔄 刷新</button>
+        </div>
+        
         <div class="nav">
             <a href="#dashboard">仪表盘</a> | 
             <a href="#services">服务管理</a> | 
             <a href="#system">系统信息</a> | 
             <a href="#logs">日志监控</a>
-            <button class="refresh-btn" onclick="refreshData()">🔄 刷新</button>
         </div>
 
         <div id="dashboard">
@@ -188,57 +216,30 @@
             <div class="card">
                 <h2>⚙️ 服务状态</h2>
                 <ul class="service-list" id="service-list">
-                    <li class="service-item">
-                        <span>
-                            <span class="status-indicator status-running"></span>
-                            SSH 服务 (端口 8022)
-                        </span>
-                        <span>运行中</span>
-                    </li>
-                    <li class="service-item">
-                        <span>
-                            <span class="status-indicator status-running"></span>
-                            Web 服务 (端口 8000)
-                        </span>
-                        <span>运行中</span>
-                    </li>
-                    <li class="service-item">
-                        <span>
-                            <span class="status-indicator status-warning"></span>
-                            健康检查
-                        </span>
-                        <span>监控中</span>
-                    </li>
-                    <li class="service-item">
-                        <span>
-                            <span class="status-indicator status-warning"></span>
-                            服务监控
-                        </span>
-                        <span>监控中</span>
-                    </li>
+                    <!-- 服务状态将通过JavaScript动态更新 -->
                 </ul>
             </div>
         </div>
 
         <div id="system">
             <div class="card">
-                <h2>📱 系统信息</h2>
+                <h2>💻 系统信息</h2>
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">设备型号</div>
-                        <div class="stat-value" id="device-model">Android</div>
+                        <div class="stat-label">系统</div>
+                        <div class="stat-value" id="os-info">--</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">操作系统</div>
-                        <div class="stat-value" id="os-version">Termux/Linux</div>
+                        <div class="stat-label">用户名</div>
+                        <div class="stat-value" id="username">--</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">电池状态</div>
-                        <div class="stat-value" id="battery-status">充电中 85%</div>
+                        <div class="stat-label">Shell</div>
+                        <div class="stat-value" id="shell">--</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">唤醒锁</div>
-                        <div class="stat-value" id="wakelock-status">已启用</div>
+                        <div class="stat-label">时间</div>
+                        <div class="stat-value" id="current-time">--:--:--</div>
                     </div>
                 </div>
             </div>
@@ -246,58 +247,147 @@
 
         <div id="logs">
             <div class="card">
-                <h2>📋 最近日志</h2>
-                <div class="log-container" id="log-content">
-[2025-10-15 01:25:30] INFO: SSH服务启动成功
-[2025-10-15 01:25:31] INFO: Web服务启动成功
-[2025-10-15 01:25:32] INFO: 健康检查服务启动
-[2025-10-15 01:25:33] INFO: 服务监控启动
-[2025-10-15 01:26:00] INFO: 所有服务健康检查通过
-[2025-10-15 01:26:30] INFO: 系统状态稳定
-[2025-10-15 01:27:00] INFO: 网络连接正常
-[2025-10-15 01:27:30] INFO: 电池电量充足
+                <h2>📋 实时日志</h2>
+                <div class="log-container" id="log-container">
+                    等待日志数据...
+                </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button class="control-btn" onclick="clearLogs()">🧹 清空日志</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 模拟数据更新
+        // 存储日志数据
+        let logs = [];
+        
+        // 页面加载完成后自动刷新数据
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshData();
+            // 每30秒自动刷新一次数据
+            setInterval(refreshData, 30000);
+        });
+        
+        // 刷新所有数据
         function refreshData() {
-            // 更新运行时间
-            const startTime = new Date('2025-10-15T01:25:30');
-            const now = new Date();
-            const diff = new Date(now - startTime);
-            const hours = Math.floor((now - startTime) / (1000 * 60 * 60));
-            const minutes = diff.getUTCMinutes();
-            const seconds = diff.getUTCSeconds();
+            updateSystemInfo();
+            updateServiceStatus();
+            updateNetworkInfo();
+            updateSystemStats();
+            updateLogs();
+            updateTime();
+        }
+        
+        // 更新系统信息
+        function updateSystemInfo() {
+            document.getElementById('username').textContent = '$(whoami)';
+            document.getElementById('shell').textContent = '$(basename $SHELL)';
+            document.getElementById('os-info').textContent = 'Android Termux';
+        }
+        
+        // 更新服务状态
+        function updateServiceStatus() {
+            const serviceList = document.getElementById('service-list');
+            serviceList.innerHTML = '';
             
-            document.getElementById('uptime').textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            // 模拟更新其他数据
-            document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 30 + 10) + '%';
-            document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 40 + 20) + '%';
-            document.getElementById('storage-usage').textContent = Math.floor(Math.random() * 30 + 15) + '%';
-            
-            // 添加新的日志条目
-            const logContainer = document.getElementById('log-content');
-            const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
-            const logMessages = [
-                "系统状态稳定",
-                "网络连接正常",
-                "服务运行良好",
-                "资源使用率正常"
+            // 模拟服务状态数据
+            const services = [
+                { name: 'SSH 服务', port: 8022, status: 'running' },
+                { name: 'Web 服务', port: 8000, status: 'running' },
+                { name: '健康检查', status: 'running' },
+                { name: '服务监控', status: 'running' },
+                { name: '唤醒锁管理', status: 'running' }
             ];
-            const randomMessage = logMessages[Math.floor(Math.random() * logMessages.length)];
-            logContainer.textContent += `\n[${nowStr}] INFO: ${randomMessage}`;
+            
+            services.forEach(service => {
+                const li = document.createElement('li');
+                li.className = 'service-item';
+                
+                let statusText, statusClass;
+                if (service.status === 'running') {
+                    statusText = '运行中';
+                    statusClass = 'status-running';
+                } else {
+                    statusText = '已停止';
+                    statusClass = 'status-stopped';
+                }
+                
+                li.innerHTML = `
+                    <span>
+                        <span class="status-indicator ${statusClass}"></span>
+                        ${service.name} ${service.port ? '(端口 ' + service.port + ')' : ''}
+                    </span>
+                    <span>${statusText}</span>
+                `;
+                
+                serviceList.appendChild(li);
+            });
+        }
+        
+        // 更新网络信息
+        function updateNetworkInfo() {
+            // 模拟获取本地IP
+            const localIp = '192.168.1.100'; // 实际应用中应该通过后端获取
+            document.getElementById('local-ip').textContent = localIp;
+            
+            // 模拟获取公网IP
+            const publicIp = '203.0.113.10'; // 实际应用中应该通过API获取
+            document.getElementById('public-ip').textContent = publicIp;
+        }
+        
+        // 更新系统统计信息
+        function updateSystemStats() {
+            // 模拟系统统计数据
+            document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 30) + 10 + '%';
+            document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 40) + 20 + '%';
+            document.getElementById('storage-usage').textContent = Math.floor(Math.random() * 50) + 30 + '%';
+            document.getElementById('uptime').textContent = '0-00:00:00';
+        }
+        
+        // 更新日志
+        function updateLogs() {
+            const logContainer = document.getElementById('log-container');
+            
+            // 添加一些模拟日志
+            const now = new Date().toLocaleTimeString();
+            logs.push(`[${now}] 系统状态更新`);
+            logs.push(`[${now}] 服务运行正常`);
+            
+            // 保持最多100条日志
+            if (logs.length > 100) {
+                logs = logs.slice(-100);
+            }
+            
+            logContainer.textContent = logs.join('\n');
             logContainer.scrollTop = logContainer.scrollHeight;
         }
         
-        // 页面加载时初始化数据
-        refreshData();
-        // 每30秒自动刷新一次
-        setInterval(refreshData, 30000);
+        // 清空日志
+        function clearLogs() {
+            logs = [];
+            document.getElementById('log-container').textContent = '日志已清空';
+        }
+        
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+        }
+        
+        // 启动所有服务
+        function startAllServices() {
+            alert('启动所有服务功能 - 在实际应用中将执行启动命令');
+            // 实际应用中应该通过后端API执行启动命令
+            refreshData();
+        }
+        
+        // 停止所有服务
+        function stopAllServices() {
+            alert('停止所有服务功能 - 在实际应用中将执行停止命令');
+            // 实际应用中应该通过后端API执行停止命令
+            refreshData();
+        }
     </script>
 </body>
 </html>
