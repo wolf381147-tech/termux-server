@@ -1,5 +1,27 @@
 // 应用配置文件
+// 所有路径配置都支持通过环境变量覆盖
+
+const path = require('path');
+
+// 基础目录配置，支持通过环境变量覆盖
+const WEBSITE_DIR = process.env.WEBSITE_DIR || path.join(__dirname, '../my-website');
+const LOGS_DIR = process.env.LOGS_DIR || path.join(__dirname, '../logs');
+const TEMP_DIR = process.env.TEMP_DIR || '/data/data/com.termux/files/usr/tmp';
+const PID_DIR = process.env.PID_DIR || '/data/data/com.termux/files/usr/tmp';
+
 module.exports = {
+  // 网站目录
+  websiteDir: WEBSITE_DIR,
+  
+  // 日志目录
+  logsDir: LOGS_DIR,
+  
+  // 临时文件目录
+  tempDir: TEMP_DIR,
+  
+  // PID文件目录
+  pidDir: PID_DIR,
+  
   // 健康检查配置
   healthCheck: {
     checks: [
@@ -20,46 +42,6 @@ module.exports = {
   // 唤醒锁配置
   wakelock: {
     checkInterval: 30000, // 30秒检查一次
-    enableBatteryCheck: true, // 是否启用电池检查
-    minBatteryLevel: 20, // 最低电池百分比
-    autoReleaseOnLowBattery: true // 低电量时自动释放唤醒锁
-  },
-
-  // Web服务器配置
-  webServer: {
-    port: 8000,
-    host: '0.0.0.0',
-    directory: process.env.WEBSITE_DIR || './my-website', // 使用环境变量或默认值
-    enableCors: false, // 是否启用CORS
-    customHeaders: {} // 自定义HTTP头
-  },
-
-  // SSH服务器配置
-  sshServer: {
-    port: 8022,
-    enablePasswordAuth: true, // 是否启用密码认证
-    enablePubkeyAuth: true // 是否启用公钥认证
-  },
-
-  // 日志配置
-  logging: {
-    level: 'info',
-    dir: process.env.LOGS_DIR || './logs', // 使用环境变量或默认值
-    maxSize: '10m',
-    maxFiles: '14d'
-  },
-  
-  // 系统配置
-  system: {
-    tempDir: process.env.TEMP_DIR || '/tmp/termux-server', // 使用环境变量或默认值
-    pidDir: process.env.PID_DIR || '/tmp/termux-server/pids', // 使用环境变量或默认值
-    maxConcurrentJobs: 5
-  },
-  
-  // 安全配置
-  security: {
-    enableRateLimiting: true,
-    maxRequestsPerMinute: 100,
-    blockDuration: 300000 // 5分钟
+    enableBatteryCheck: true // 是否启用电池检查
   }
 };
