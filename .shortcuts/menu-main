@@ -12,6 +12,29 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# 显示使用说明
+show_usage() {
+    echo "Termux Server Suite 交互式菜单"
+    echo ""
+    echo "使用方法:"
+    echo "  启动菜单: ~/.shortcuts/menu-main"
+    echo "  或者: ./.shortcuts/menu-main"
+    echo ""
+    echo "菜单功能:"
+    echo "  1. 启动所有服务 - 启动SSH、Web以及后台监控服务"
+    echo "  2. 停止所有服务 - 停止所有正在运行的服务"
+    echo "  3. 服务器监控面板 - 查看服务状态和系统信息"
+    echo "  4. 帮助文档 - 显示帮助信息"
+    echo "  0. 退出 - 退出菜单程序"
+    echo ""
+}
+
+# 检查是否显示帮助
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    show_usage
+    exit 0
+fi
+
 # 显示主菜单
 show_main_menu() {
     clear
@@ -21,8 +44,8 @@ show_main_menu() {
     echo "1. ▶️  启动所有服务"
     echo "2. ⏹️  停止所有服务"
     echo "3. 🖥️  服务器监控面板"
-    echo "4. 📚  帮助文档"
-    echo "0. 🚪  退出"
+    echo "4. 📚 帮助文档"
+    echo "0. 🚪 退出"
     echo "=========================================="
 }
 
@@ -195,6 +218,10 @@ show_monitor_panel() {
     echo "  Web: http://${local_ip:-localhost}:8000"
     
     echo ""
+    echo "提示: 可以通过浏览器访问Web监控面板"
+    echo "  地址: http://${local_ip:-localhost}:8000"
+    
+    echo ""
     read -p "按回车键返回主菜单..."
 }
 
@@ -216,6 +243,13 @@ show_help() {
     echo "  🔐 SSH服务 - 端口 8022，允许远程连接到设备"
     echo "  🌐 Web服务 - 端口 8000，托管静态网站内容"
     echo "  ⚙️  后台服务 - 包括健康检查、服务监控和唤醒锁管理"
+    echo ""
+    echo "使用方法:"
+    echo "  启动菜单: ~/.shortcuts/menu-main"
+    echo "  或者: ./.shortcuts/menu-main"
+    echo ""
+    echo "更新项目:"
+    echo "  拉取最新更新: git pull origin main"
     echo ""
     echo "注意事项:"
     echo "  - 长时间运行唤醒锁可能会消耗电池电量"

@@ -61,6 +61,44 @@ termux-server-suite/
    node termux-server-suite/system/wakelock-manager.js
    ```
 
+## 更新项目
+
+要获取项目的最新更新，请使用以下命令：
+
+```
+git pull origin main
+```
+
+如果遇到网络问题，可以尝试配置Git使用SSH协议：
+
+```
+git remote set-url origin git@github.com:wolf381147-tech/termux-server.git
+```
+
+然后再次尝试拉取更新：
+```
+git pull origin main
+```
+
+## 进入交互界面
+
+项目提供了一个交互式菜单界面，可以通过以下方式启动：
+
+```
+~/.shortcuts/menu-main
+```
+
+或者直接运行：
+```
+./.shortcuts/menu-main
+```
+
+在交互界面中，您可以：
+- 启动所有服务
+- 停止所有服务
+- 查看服务器监控面板
+- 获取帮助信息
+
 ## 文档
 
 项目的完整文档位于 [docs/complete-guide.md](./termux-server-suite/docs/complete-guide.md)，包含以下内容：
