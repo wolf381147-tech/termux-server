@@ -15,10 +15,8 @@ termux-projects/
 │   ├── service-manager.js # 通用服务管理器
 │   └── event-bus.js       # 事件总线
 ├── my-website/          # 默认托管网站
-├── file-manager/        # 文件管理工具
-├── scripts/             # 实用脚本
-├── web-gui/             # Web图形界面
-└── projects/            # 其他项目文件
+├── projects/            # 其他项目文件
+└── tests/               # 测试文件
 ```
 
 ## 架构说明
