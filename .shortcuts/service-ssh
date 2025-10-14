@@ -42,7 +42,44 @@ show_help() {
 
 # 获取本地IP地址
 get_local_ip() {
-    ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1
+    local ip=""
+    
+    # 方法1: 使用ip命令（如果可用）
+    if command -v ip >/dev/null 2>&1; then
+        ip=$(ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    fi
+    
+    # 方法2: 使用ifconfig命令（如果可用）
+    if [ -z "$ip" ] && command -v ifconfig >/dev/null 2>&1; then
+        ip=$(ifconfig wlan0 2>/dev/null | grep -E "inet[^6]" | awk '{print $2}')
+    fi
+    
+    # 方法3: 使用netcfg命令（Android特定）
+    if [ -z "$ip" ] && command -v netcfg >/dev/null 2>&1; then
+        ip=$(netcfg 2>/dev/null | grep wlan0 | grep -E "UP|RUNNING" | awk '{print $3}' | cut -d'/' -f1)
+    fi
+    
+    # 方法4: 使用ip route命令获取默认路由接口IP
+    if [ -z "$ip" ] && command -v ip >/dev/null 2>&1; then
+        ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if ($i=="src") print $(i+1); exit}')
+    fi
+    
+    # 方法5: 使用hostname命令
+    if [ -z "$ip" ] && command -v hostname >/dev/null 2>&1; then
+        ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+    
+    # 如果所有方法都失败，尝试读取系统文件
+    if [ -z "$ip" ]; then
+        # 尝试读取系统网络接口信息
+        if [ -f "/sys/class/net/wlan0/operstate" ] && [ "$(cat /sys/class/net/wlan0/operstate 2>/dev/null)" = "up" ]; then
+            if [ -f "/sys/class/net/wlan0/address" ]; then
+                ip=$(cat /sys/class/net/wlan0/address 2>/dev/null)
+            fi
+        fi
+    fi
+    
+    echo "$ip"
 }
 
 # 获取公共IP地址
