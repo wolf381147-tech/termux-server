@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 统一备份工具
-# 支持项目备份、系统备份、完整备份等功能
+# 系统状态快照工具
+# 专注于保存和恢复完整的Termux运行环境
 
 # 默认配置
 BACKUP_DIR="$HOME/storage/shared"
@@ -18,286 +18,180 @@ NC='\033[0m' # No Color
 show_help() {
     echo "用法: tool-backup [选项] <命令>"
     echo ""
+    echo "说明: 本工具专注于保存和恢复完整的Termux运行环境，"
+    echo "      与Git版本控制协同工作而非替代它。"
+    echo ""
     echo "命令:"
-    echo "  backup    执行备份"
-    echo "  list      列出备份文件"
-    echo "  restore   从备份恢复"
-    echo "  clean     清理旧备份"
+    echo "  snapshot  创建系统状态快照"
+    echo "  list      列出快照文件"
+    echo "  restore   从快照恢复"
+    echo "  clean     清理旧快照"
     echo ""
     echo "选项:"
-    echo "  -t, --type TYPE         备份类型 (project|system|full|ultimate)"
-    echo "  -n, --name NAME         备份名称"
-    echo "  -d, --dir DIRECTORY     备份目录"
-    echo "  -k, --keep NUMBER       保留备份数量"
+    echo "  -n, --name NAME         快照名称"
+    echo "  -d, --dir DIRECTORY     快照目录"
+    echo "  -k, --keep NUMBER       保留快照数量"
     echo "  -h, --help              显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  tool-backup backup --type project"
-    echo "  tool-backup backup --type ultimate"
+    echo "  tool-backup snapshot"
     echo "  tool-backup list"
-    echo "  tool-backup clean --keep 5"
+    echo "  tool-backup clean --keep 3"
 }
 
-# 创建备份目录
-create_backup_dir() {
-    local backup_name=$1
-    local backup_path="$BACKUP_DIR/$backup_name"
+# 创建快照目录
+create_snapshot_dir() {
+    local snapshot_name=$1
+    local snapshot_path="$BACKUP_DIR/$snapshot_name"
     
-    if mkdir -p "$backup_path"; then
-        echo "$backup_path"
+    if mkdir -p "$snapshot_path"; then
+        echo "$snapshot_path"
         return 0
     else
-        echo -e "${RED}无法创建备份目录: $backup_path${NC}" >&2
+        echo -e "${RED}无法创建快照目录: $snapshot_path${NC}" >&2
         return 1
     fi
 }
 
-# 项目备份
-backup_project() {
-    local backup_name=$1
+# 创建系统状态快照
+create_snapshot() {
+    local snapshot_name=$1
     
-    echo -e "${BLUE}开始项目备份...${NC}"
+    # 设置默认快照名称
+    if [ -z "$snapshot_name" ]; then
+        snapshot_name="termux-snapshot-$TIMESTAMP"
+    fi
     
-    # 创建备份目录
-    local backup_path=$(create_backup_dir "$backup_name")
+    echo -e "${BLUE}开始创建系统状态快照...${NC}"
+    
+    # 创建快照目录
+    local snapshot_path=$(create_snapshot_dir "$snapshot_name")
     if [ $? -ne 0 ]; then
         return 1
     fi
     
-    echo -e "${YELLOW}📁 备份目录: $backup_name${NC}"
+    echo -e "${YELLOW}📁 快照目录: $snapshot_name${NC}"
     
-    # 1. 备份脚本文件
-    echo -e "${YELLOW}📜 备份脚本文件...${NC}"
-    cp -r ~/.shortcuts "$backup_path/" 2>/dev/null
+    # 1. 备份重要配置和数据
+    echo -e "${YELLOW}📋 备份重要配置和数据...${NC}"
     
-    # 2. 备份配置文件
-    echo -e "${YELLOW}⚙️  备份配置文件...${NC}"
-    cp ~/.bashrc "$backup_path/" 2>/dev/null
-    cp ~/.tmux.conf "$backup_path/" 2>/dev/null
-    
-    # 3. 备份项目目录
-    echo -e "${YELLOW}📂 备份项目目录...${NC}"
-    cp -r ~/termux-projects "$backup_path/" 2>/dev/null
-    
-    # 4. 备份文档
-    echo -e "${YELLOW}📘 备份文档...${NC}"
-    cp -r ~/docs "$backup_path/" 2>/dev/null
-    
-    echo -e "${GREEN}✅ 项目备份完成${NC}"
-}
-
-# 系统备份
-backup_system() {
-    local backup_name=$1
-    
-    echo -e "${BLUE}开始系统备份...${NC}"
-    
-    # 创建备份目录
-    local backup_path=$(create_backup_dir "$backup_name")
-    if [ $? -ne 0 ]; then
-        return 1
+    # 备份已安装的包列表
+    echo -e "${YELLOW}📦 备份已安装的包列表...${NC}"
+    if command -v pkg >/dev/null 2>&1; then
+        pkg list-installed > "$snapshot_path/installed-packages.txt"
     fi
     
-    echo -e "${YELLOW}📁 备份目录: $backup_name${NC}"
+    # 备份Git仓库状态
+    echo -e "${YELLOW}🔄 备份Git仓库状态...${NC}"
+    cd "$HOME"
+    echo "当前分支: $(git branch --show-current 2>/dev/null || echo 'N/A')" > "$snapshot_path/git-status.txt"
+    echo "最后提交: $(git log -1 --oneline 2>/dev/null || echo 'N/A')" >> "$snapshot_path/git-status.txt"
     
-    # 1. 备份所有脚本和配置
-    echo -e "${YELLOW}📜 备份脚本和配置...${NC}"
-    cp -r ~/.shortcuts "$backup_path/"
-    cp ~/.bashrc "$backup_path/"
-    cp ~/.tmux.conf "$backup_path/" 2>/dev/null || true
-    
-    # 2. 备份项目文件
-    echo -e "${YELLOW}📂 备份项目文件...${NC}"
-    cp -r ~/termux-projects "$backup_path/" 2>/dev/null || true
+    # 2. 备份用户数据
+    echo -e "${YELLOW}📂 备份用户数据...${NC}"
+    if [ -d "$HOME/storage" ]; then
+        # 只备份关键用户数据，避免过大文件
+        find "$HOME/storage" -type f -name "*.txt" -o -name "*.conf" -o -name "*.json" | head -50 | while read file; do
+            # 保持目录结构
+            rel_path="${file#$HOME/}"
+            mkdir -p "$(dirname "$snapshot_path/user-data/$rel_path")"
+            cp "$file" "$snapshot_path/user-data/$rel_path" 2>/dev/null
+        done
+    fi
     
     # 3. 备份系统信息
     echo -e "${YELLOW}💻 备份系统信息...${NC}"
-    echo "系统备份时间: $(date)" > "$backup_path/system-info.txt"
-    echo "系统用户: $(whoami)" >> "$backup_path/system-info.txt"
-    echo "系统架构: $(uname -m)" >> "$backup_path/system-info.txt"
-    echo "系统版本: $(uname -r)" >> "$backup_path/system-info.txt"
+    {
+        echo "快照时间: $(date)"
+        echo "系统用户: $(whoami)"
+        echo "系统架构: $(uname -m)"
+        echo "系统版本: $(uname -r)"
+        echo "工作目录: $(pwd)"
+    } > "$snapshot_path/system-info.txt"
     
-    # 4. 备份已安装的包列表
-    echo -e "${YELLOW}📦 备份已安装的包列表...${NC}"
-    if command -v pkg >/dev/null 2>&1; then
-        pkg list-installed > "$backup_path/installed-packages.txt"
-    fi
+    # 4. 创建恢复脚本
+    echo -e "${YELLOW}🔧 创建恢复脚本...${NC}"
+    cat > "$snapshot_path/restore.sh" << 'EOF'
+#!/bin/bash
+# Termux系统状态恢复脚本
+
+echo "开始恢复系统状态..."
+
+# 恢复已安装的包
+if [ -f "installed-packages.txt" ]; then
+    echo "恢复已安装的包..."
+    while read package; do
+        pkg install -y "$package" 2>/dev/null
+    done < installed-packages.txt
+fi
+
+# 恢复用户数据
+if [ -d "user-data" ]; then
+    echo "恢复用户数据..."
+    cp -r user-data/* "$HOME/" 2>/dev/null
+fi
+
+echo "系统状态恢复完成"
+EOF
     
-    echo -e "${GREEN}✅ 系统备份完成${NC}"
+    chmod +x "$snapshot_path/restore.sh"
+    
+    echo -e "${GREEN}✅ 系统状态快照创建完成${NC}"
+    echo -e "${BLUE}快照位置: $snapshot_path${NC}"
 }
 
-# 完整备份
-backup_full() {
-    local backup_name=$1
-    
-    echo -e "${BLUE}开始完整备份...${NC}"
-    
-    # 创建备份目录
-    local backup_path=$(create_backup_dir "$backup_name")
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-    
-    echo -e "${YELLOW}📁 备份目录: $backup_name${NC}"
-    
-    # 1. 备份主目录
-    echo -e "${YELLOW}🏠 备份主目录...${NC}"
-    tar -czf "$backup_path/home-backup.tar.gz" -C /data/data/com.termux/files ./home --exclude="home/storage" 2>/dev/null || true
-    
-    # 2. 备份配置
-    echo -e "${YELLOW}⚙️  备份系统配置...${NC}"
-    cp -r ~/.shortcuts "$backup_path/"
-    cp ~/.bashrc "$backup_path/"
-    cp ~/.tmux.conf "$backup_path/" 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ 完整备份完成${NC}"
-}
-
-# 终极备份
-backup_ultimate() {
-    local backup_name=$1
-    
-    echo -e "${BLUE}开始终极备份...${NC}"
-    
-    # 创建备份目录
-    local backup_path=$(create_backup_dir "$backup_name")
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-    
-    echo -e "${YELLOW}📁 备份目录: $backup_name${NC}"
-    
-    # 1. 备份所有脚本和配置
-    echo -e "${YELLOW}📜 备份脚本和配置...${NC}"
-    cp -r ~/.shortcuts "$backup_path/"
-    cp ~/.bashrc "$backup_path/"
-    cp ~/.tmux.conf "$backup_path/" 2>/dev/null || true
-    
-    # 2. 备份项目文件
-    echo -e "${YELLOW}📂 备份项目文件...${NC}"
-    cp -r ~/termux-projects "$backup_path/" 2>/dev/null || true
-    
-    # 3. 备份文档和笔记
-    echo -e "${YELLOW}📘 备份文档...${NC}"
-    cp -r ~/docs "$backup_path/" 2>/dev/null || true
-    
-    # 4. 备份系统信息
-    echo -e "${YELLOW}💻 备份系统信息...${NC}"
-    echo "终极备份时间: $(date)" > "$backup_path/system-info.txt"
-    echo "系统用户: $(whoami)" >> "$backup_path/system-info.txt"
-    echo "系统架构: $(uname -m)" >> "$backup_path/system-info.txt"
-    echo "系统版本: $(uname -r)" >> "$backup_path/system-info.txt"
-    
-    # 5. 备份已安装的包列表
-    echo -e "${YELLOW}📦 备份已安装的包列表...${NC}"
-    if command -v pkg >/dev/null 2>&1; then
-        pkg list-installed > "$backup_path/installed-packages.txt"
-    fi
-    
-    # 6. 创建完整系统备份
-    echo -e "${YELLOW}💾 创建完整系统备份...${NC}"
-    tar -czf "$backup_path/full-system-backup.tar.gz" -C /data/data/com.termux/files ./home ./usr --exclude="home/storage" 2>/dev/null || true
-    
-    echo -e "${GREEN}✅ 终极备份完成${NC}"
-}
-
-# 执行备份
-do_backup() {
-    local backup_type=$1
-    local backup_name=$2
-    
-    # 设置默认备份名称
-    if [ -z "$backup_name" ]; then
-        backup_name="termux-backup-$TIMESTAMP"
-        case $backup_type in
-            project)
-                backup_name="termux-project-backup-$TIMESTAMP"
-                ;;
-            system)
-                backup_name="termux-system-backup-$TIMESTAMP"
-                ;;
-            full)
-                backup_name="termux-full-backup-$TIMESTAMP"
-                ;;
-            ultimate)
-                backup_name="termux-ultimate-backup-$TIMESTAMP"
-                ;;
-        esac
-    fi
-    
-    case $backup_type in
-        project)
-            backup_project "$backup_name"
-            ;;
-        system)
-            backup_system "$backup_name"
-            ;;
-        full)
-            backup_full "$backup_name"
-            ;;
-        ultimate)
-            backup_ultimate "$backup_name"
-            ;;
-        *)
-            echo -e "${RED}未知备份类型: $backup_type${NC}"
-            return 1
-            ;;
-    esac
-}
-
-# 列出备份文件
-list_backups() {
-    echo -e "${BLUE}备份文件列表:${NC}"
+# 列出快照文件
+list_snapshots() {
+    echo -e "${BLUE}系统状态快照列表:${NC}"
     echo "=========================================="
     
     if [ -d "$BACKUP_DIR" ]; then
-        ls -la "$BACKUP_DIR" | grep "termux-" | head -20
+        ls -la "$BACKUP_DIR" | grep "termux-snapshot-" | head -20
     else
-        echo -e "${YELLOW}备份目录不存在${NC}"
+        echo -e "${YELLOW}快照目录不存在${NC}"
     fi
 }
 
-# 清理旧备份
-clean_backups() {
+# 清理旧快照
+clean_snapshots() {
     local keep_count=$1
     
     if [ -z "$keep_count" ]; then
-        keep_count=5
+        keep_count=3
     fi
     
-    echo -e "${BLUE}清理旧备份，保留最近 $keep_count 个...${NC}"
+    echo -e "${BLUE}清理旧快照，保留最近 $keep_count 个...${NC}"
     
     if [ -d "$BACKUP_DIR" ]; then
         cd "$BACKUP_DIR"
-        # 找到所有备份文件，按时间排序，删除超出保留数量的
-        ls -t | grep "termux-" | tail -n +$((keep_count + 1)) | while read -r backup; do
-            echo -e "${YELLOW}删除旧备份: $backup${NC}"
-            rm -rf "$backup"
+        # 找到所有快照文件，按时间排序，删除超出保留数量的
+        ls -t | grep "termux-snapshot-" | tail -n +$((keep_count + 1)) | while read -r snapshot; do
+            echo -e "${YELLOW}删除旧快照: $snapshot${NC}"
+            rm -rf "$snapshot"
         done
-        echo -e "${GREEN}✅ 备份清理完成${NC}"
+        echo -e "${GREEN}✅ 快照清理完成${NC}"
     else
-        echo -e "${YELLOW}备份目录不存在${NC}"
+        echo -e "${YELLOW}快照目录不存在${NC}"
     fi
 }
 
-# 从备份恢复
-restore_backup() {
-    echo -e "${YELLOW}恢复功能将在后续版本中实现${NC}"
-    echo -e "${BLUE}请手动解压备份文件并恢复所需内容${NC}"
+# 从快照恢复
+restore_snapshot() {
+    echo -e "${YELLOW}要从快照恢复，请手动执行快照目录中的restore.sh脚本${NC}"
+    echo -e "${BLUE}例如: cd /path/to/snapshot && ./restore.sh${NC}"
 }
 
 # 主程序逻辑
 main() {
     local command=""
-    local backup_type="project"
-    local backup_name=""
+    local snapshot_name=""
     local keep_count=""
     
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
         case $1 in
-            backup)
-                command="backup"
+            snapshot)
+                command="snapshot"
                 shift
                 ;;
             list)
@@ -312,12 +206,8 @@ main() {
                 command="clean"
                 shift
                 ;;
-            -t|--type)
-                backup_type="$2"
-                shift 2
-                ;;
             -n|--name)
-                backup_name="$2"
+                snapshot_name="$2"
                 shift 2
                 ;;
             -d|--dir)
@@ -342,17 +232,17 @@ main() {
     
     # 执行相应命令
     case $command in
-        backup)
-            do_backup $backup_type $backup_name
+        snapshot)
+            create_snapshot $snapshot_name
             ;;
         list)
-            list_backups
+            list_snapshots
             ;;
         restore)
-            restore_backup
+            restore_snapshot
             ;;
         clean)
-            clean_backups $keep_count
+            clean_snapshots $keep_count
             ;;
         *)
             echo -e "${RED}请指定有效命令${NC}"

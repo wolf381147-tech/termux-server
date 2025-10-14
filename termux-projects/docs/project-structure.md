@@ -52,7 +52,7 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 - [menu-main](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/menu-main) - 主菜单系统
 - [service-ssh](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-ssh) - SSH服务统一管理器
 - [service-web](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/service-web) - Web服务统一管理器
-- [tool-backup](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/tool-backup) - 备份工具统一管理器
+- [tool-backup](file:///e:/Termux%E5%A4%87%E4%BB%BD/.shortcuts/tool-backup) - 系统状态快照工具
 
 ### my-website/
 默认托管的网站文件，通过Python HTTP服务器提供访问。
@@ -121,9 +121,8 @@ npm run start:wakelock
 ~/.shortcuts/service-web start --type manager --background
 ~/.shortcuts/service-web stop --type server
 
-# 备份工具
-~/.shortcuts/tool-backup backup --type project
-~/.shortcuts/tool-backup backup --type ultimate
+# 系统状态快照工具
+~/.shortcuts/tool-backup snapshot
 ~/.shortcuts/tool-backup list
 
 # 主菜单系统
@@ -144,13 +143,10 @@ npm run start:wakelock
 │   ├── ⏹️ 停止Web服务器
 │   ├── 📊 查看Web状态
 │   └── ℹ️ Web连接信息
-├── 💾 备份工具
-│   ├── 📦 项目备份
-│   ├── 💻 系统备份
-│   ├── 🗃️ 完整备份
-│   ├── 🚀 终极备份
-│   ├── 📋 列出备份文件
-│   └── 🧹 清理旧备份
+├── 💾 系统状态快照工具
+│   ├── 📸 创建系统状态快照
+│   ├── 📋 列出快照文件
+│   └── 🧹 清理旧快照
 ├── 📊 系统状态
 └── 🚪 退出
 ```
