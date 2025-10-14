@@ -63,7 +63,7 @@ termux-server-suite/
 
 ## 文档
 
-项目的完整文档位于 [termux-server-suite/docs/complete-guide.md](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-server-suite/docs/complete-guide.md)，包含以下内容：
+项目的完整文档位于 [docs/complete-guide.md](./termux-server-suite/docs/complete-guide.md)，包含以下内容：
 
 - 项目概述和架构说明
 - 目录结构详解
