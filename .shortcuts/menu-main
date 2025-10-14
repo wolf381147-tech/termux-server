@@ -49,6 +49,18 @@ show_web_menu() {
     echo "=========================================="
 }
 
+# VS Code Server管理菜单
+show_vscode_menu() {
+    clear
+    echo "=========================================="
+    echo "           💻 VS Code Server 管理"
+    echo "=========================================="
+    echo "1. 🔁 切换VS Code Server状态"
+    echo "2. 📊 查看VS Code Server状态和连接信息"
+    echo "0. ↩️  返回监控面板"
+    echo "=========================================="
+}
+
 # 备份工具菜单
 show_backup_menu() {
     clear
@@ -131,6 +143,36 @@ handle_web_menu() {
     done
 }
 
+# 处理VS Code Server菜单选项
+handle_vscode_menu() {
+    while true; do
+        show_vscode_menu
+        read -p "请选择: " vscode_choice
+        
+        case $vscode_choice in
+            1)
+                echo -e "${BLUE}切换VS Code Server状态...${NC}"
+                ~/.shortcuts/service-web toggle --type vscode
+                read -p "按回车键继续..."
+                ;;
+            2)
+                echo -e "${BLUE}检查VS Code Server状态...${NC}"
+                ~/.shortcuts/service-web status --type vscode
+                echo -e "${BLUE}显示VS Code Server连接信息...${NC}"
+                ~/.shortcuts/service-web info --type vscode --with-guide
+                read -p "按回车键继续..."
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}无效选择，请重新输入${NC}"
+                sleep 1
+                ;;
+        esac
+    done
+}
+
 # 处理备份菜单选项
 handle_backup_menu() {
     while true; do
@@ -198,4 +240,4 @@ main() {
 }
 
 # 执行主程序
-main
+main "$@"
