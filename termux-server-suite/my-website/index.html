@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termux 服务器监控面板</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(0,0,0,0.2);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-running {
+            background-color: #4CAF50;
+        }
+        .status-stopped {
+            background-color: #F44336;
+        }
+        .status-warning {
+            background-color: #FF9800;
+        }
+        .nav {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.3s;
+        }
+        .nav a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .refresh-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            float: right;
+            margin-top: -10px;
+        }
+        .refresh-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .service-list {
+            list-style: none;
+            padding: 0;
+        }
+        .service-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-container {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .nav a {
+                display: block;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Termux 服务器监控面板</h1>
+        
+        <div class="nav">
+            <a href="#dashboard">仪表盘</a> | 
+            <a href="#services">服务管理</a> | 
+            <a href="#system">系统信息</a> | 
+            <a href="#logs">日志监控</a>
+            <button class="refresh-btn" onclick="refreshData()">🔄 刷新</button>
+        </div>
+
+        <div id="dashboard">
+            <div class="card">
+                <h2>📊 系统概览</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">CPU 使用率</div>
+                        <div class="stat-value" id="cpu-usage">--%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">内存使用</div>
+                        <div class="stat-value" id="memory-usage">--%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">存储空间</div>
+                        <div class="stat-value" id="storage-usage">--%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">运行时间</div>
+                        <div class="stat-value" id="uptime">--:--:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔌 网络信息</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">本地IP</div>
+                        <div class="stat-value" id="local-ip">--.--.--.--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">公网IP</div>
+                        <div class="stat-value" id="public-ip">--.--.--.--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="services">
+            <div class="card">
+                <h2>⚙️ 服务状态</h2>
+                <ul class="service-list" id="service-list">
+                    <li class="service-item">
+                        <span>
+                            <span class="status-indicator status-running"></span>
+                            SSH 服务 (端口 8022)
+                        </span>
+                        <span>运行中</span>
+                    </li>
+                    <li class="service-item">
+                        <span>
+                            <span class="status-indicator status-running"></span>
+                            Web 服务 (端口 8000)
+                        </span>
+                        <span>运行中</span>
+                    </li>
+                    <li class="service-item">
+                        <span>
+                            <span class="status-indicator status-warning"></span>
+                            健康检查
+                        </span>
+                        <span>监控中</span>
+                    </li>
+                    <li class="service-item">
+                        <span>
+                            <span class="status-indicator status-warning"></span>
+                            服务监控
+                        </span>
+                        <span>监控中</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="system">
+            <div class="card">
+                <h2>📱 系统信息</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">设备型号</div>
+                        <div class="stat-value" id="device-model">Android</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">操作系统</div>
+                        <div class="stat-value" id="os-version">Termux/Linux</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">电池状态</div>
+                        <div class="stat-value" id="battery-status">充电中 85%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">唤醒锁</div>
+                        <div class="stat-value" id="wakelock-status">已启用</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="logs">
+            <div class="card">
+                <h2>📋 最近日志</h2>
+                <div class="log-container" id="log-content">
+[2025-10-15 01:25:30] INFO: SSH服务启动成功
+[2025-10-15 01:25:31] INFO: Web服务启动成功
+[2025-10-15 01:25:32] INFO: 健康检查服务启动
+[2025-10-15 01:25:33] INFO: 服务监控启动
+[2025-10-15 01:26:00] INFO: 所有服务健康检查通过
+[2025-10-15 01:26:30] INFO: 系统状态稳定
+[2025-10-15 01:27:00] INFO: 网络连接正常
+[2025-10-15 01:27:30] INFO: 电池电量充足
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据更新
+        function refreshData() {
+            // 更新运行时间
+            const startTime = new Date('2025-10-15T01:25:30');
+            const now = new Date();
+            const diff = new Date(now - startTime);
+            const hours = Math.floor((now - startTime) / (1000 * 60 * 60));
+            const minutes = diff.getUTCMinutes();
+            const seconds = diff.getUTCSeconds();
+            
+            document.getElementById('uptime').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 模拟更新其他数据
+            document.getElementById('cpu-usage').textContent = Math.floor(Math.random() * 30 + 10) + '%';
+            document.getElementById('memory-usage').textContent = Math.floor(Math.random() * 40 + 20) + '%';
+            document.getElementById('storage-usage').textContent = Math.floor(Math.random() * 30 + 15) + '%';
+            
+            // 添加新的日志条目
+            const logContainer = document.getElementById('log-content');
+            const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            const logMessages = [
+                "系统状态稳定",
+                "网络连接正常",
+                "服务运行良好",
+                "资源使用率正常"
+            ];
+            const randomMessage = logMessages[Math.floor(Math.random() * logMessages.length)];
+            logContainer.textContent += `\n[${nowStr}] INFO: ${randomMessage}`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // 页面加载时初始化数据
+        refreshData();
+        // 每30秒自动刷新一次
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>
