@@ -11,8 +11,8 @@ class WakelockManager {
         // 从配置中获取设置
         this.checkInterval = config.get('wakelock.checkInterval');
         this.enableBatteryCheck = config.get('wakelock.enableBatteryCheck');
-        this.minBatteryLevel = config.get('wakelock.minBatteryLevel');
-        this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery');
+        this.minBatteryLevel = config.get('wakelock.minBatteryLevel', 20);
+        this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery', true);
         this.isLocked = false;
         
         // 订阅相关事件
@@ -38,8 +38,8 @@ class WakelockManager {
             console.log('配置已更新，重新加载配置...');
             this.checkInterval = config.get('wakelock.checkInterval');
             this.enableBatteryCheck = config.get('wakelock.enableBatteryCheck');
-            this.minBatteryLevel = config.get('wakelock.minBatteryLevel');
-            this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery');
+            this.minBatteryLevel = config.get('wakelock.minBatteryLevel', 20);
+            this.autoReleaseOnLowBattery = config.get('wakelock.autoReleaseOnLowBattery', true);
         });
     }
     
@@ -77,7 +77,7 @@ class WakelockManager {
         if (this.enableBatteryCheck) {
             this.checkBatteryLevel().then(canAcquire => {
                 if (canAcquire) {
-                    exec('termux-wake-lock', (error) => {
+                    exec('termux-wake-lock', { timeout: 5000 }, (error) => {
                         if (!error) {
                             this.isLocked = true;
                             console.log('唤醒锁已获取:', new Date().toISOString());
@@ -100,9 +100,28 @@ class WakelockManager {
                         timestamp: new Date().toISOString()
                     });
                 }
+            }).catch(error => {
+                // 电池检查出错时，默认允许获取唤醒锁
+                console.warn('电池检查出错，默认允许获取唤醒锁:', error.message);
+                exec('termux-wake-lock', { timeout: 5000 }, (error) => {
+                    if (!error) {
+                        this.isLocked = true;
+                        console.log('唤醒锁已获取:', new Date().toISOString());
+                        // 发布唤醒锁获取事件
+                        eventBus.publish('wakelock.acquired', {
+                            timestamp: new Date().toISOString()
+                        });
+                    } else {
+                        // 发布唤醒锁获取失败事件
+                        eventBus.publish('wakelock.acquire.failed', {
+                            error: error.message,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
             });
         } else {
-            exec('termux-wake-lock', (error) => {
+            exec('termux-wake-lock', { timeout: 5000 }, (error) => {
                 if (!error) {
                     this.isLocked = true;
                     console.log('唤醒锁已获取:', new Date().toISOString());
@@ -135,7 +154,7 @@ class WakelockManager {
             return;
         }
         
-        exec('termux-wake-unlock', (error) => {
+        exec('termux-wake-unlock', { timeout: 5000 }, (error) => {
             if (!error) {
                 this.isLocked = false;
                 console.log('唤醒锁已释放:', new Date().toISOString());
@@ -163,16 +182,20 @@ class WakelockManager {
             return Promise.resolve(true); // 默认允许获取唤醒锁
         }
         
-        return new Promise((resolve) => {
-            exec('termux-battery-status', (error, stdout) => {
+        return new Promise((resolve, reject) => {
+            exec('termux-battery-status', { timeout: 5000 }, (error, stdout) => {
                 if (error) {
-                    // 如果无法获取电池状态，默认允许获取唤醒锁
-                    console.warn('无法获取电池状态，默认允许获取唤醒锁');
-                    resolve(true);
+                    // 如果无法获取电池状态，返回错误
+                    reject(new Error('无法获取电池状态'));
                 } else {
                     try {
                         const batteryInfo = JSON.parse(stdout);
                         const batteryLevel = batteryInfo.percentage;
+                        
+                        if (typeof batteryLevel !== 'number' || batteryLevel < 0 || batteryLevel > 100) {
+                            reject(new Error('电池电量数据无效'));
+                            return;
+                        }
                         
                         if (batteryLevel < this.minBatteryLevel) {
                             console.log(`电池电量 ${batteryLevel}% 低于阈值 ${this.minBatteryLevel}%`);
@@ -192,9 +215,8 @@ class WakelockManager {
                             resolve(true);
                         }
                     } catch (parseError) {
-                        // 如果解析失败，默认允许获取唤醒锁
-                        console.warn('电池状态解析失败，默认允许获取唤醒锁');
-                        resolve(true);
+                        // 如果解析失败，返回错误
+                        reject(new Error('电池状态解析失败'));
                     }
                 }
             });
@@ -205,6 +227,12 @@ class WakelockManager {
      * 启动监控
      */
     startMonitoring() {
+        // 检查必要配置
+        if (!this.checkInterval || this.checkInterval < 1000) {
+            console.error('唤醒锁检查间隔配置无效，必须是大于1000的数字');
+            return;
+        }
+        
         // 定期检查并重新获取唤醒锁
         setInterval(() => {
             if (!this.isLocked) {

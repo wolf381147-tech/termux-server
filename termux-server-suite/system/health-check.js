@@ -34,19 +34,33 @@ class HealthChecker {
      */
     checkTCP(host, port) {
         return new Promise((resolve) => {
+            // 检查参数有效性
+            if (!host || typeof port !== 'number' || port < 1 || port > 65535) {
+                resolve(false);
+                return;
+            }
+            
             const socket = new net.Socket();
             const timeout = this.timeout;
             
+            const timer = setTimeout(() => {
+                socket.destroy();
+                resolve(false);
+            }, timeout);
+            
             socket.setTimeout(timeout);
             socket.on('connect', () => {
+                clearTimeout(timer);
                 socket.destroy();
                 resolve(true);
             });
             socket.on('timeout', () => {
+                clearTimeout(timer);
                 socket.destroy();
                 resolve(false);
             });
             socket.on('error', () => {
+                clearTimeout(timer);
                 resolve(false);
             });
             
@@ -59,8 +73,14 @@ class HealthChecker {
      */
     checkHTTP(host, port) {
         return new Promise((resolve) => {
+            // 检查参数有效性
+            if (!host || typeof port !== 'number' || port < 1 || port > 65535) {
+                resolve(false);
+                return;
+            }
+            
             const req = http.get(`http://${host}:${port}`, (res) => {
-                resolve(res.statusCode === 200);
+                resolve(res.statusCode >= 200 && res.statusCode < 400);
             });
             
             req.on('error', () => {
@@ -81,12 +101,29 @@ class HealthChecker {
         const host = 'localhost';
         
         try {
+            // 检查参数有效性
+            if (!check || !check.name || !check.type || !check.port) {
+                return {
+                    name: check ? check.name : 'unknown',
+                    healthy: false,
+                    error: '检查配置不完整',
+                    timestamp: new Date().toISOString()
+                };
+            }
+            
             let isHealthy = false;
             
             if (check.type === 'tcp') {
                 isHealthy = await this.checkTCP(host, check.port);
             } else if (check.type === 'http') {
                 isHealthy = await this.checkHTTP(host, check.port);
+            } else {
+                return {
+                    name: check.name,
+                    healthy: false,
+                    error: `不支持的检查类型: ${check.type}`,
+                    timestamp: new Date().toISOString()
+                };
             }
             
             return {
@@ -111,12 +148,22 @@ class HealthChecker {
         console.log('执行健康检查...');
         const results = [];
         
+        // 检查配置有效性
+        if (!Array.isArray(this.checks)) {
+            console.error('健康检查配置无效，checks必须是数组');
+            eventBus.publish('health.check.error', {
+                error: '健康检查配置无效',
+                timestamp: new Date().toISOString()
+            });
+            return results;
+        }
+        
         for (const check of this.checks) {
             const result = await this.performCheck(check);
             results.push(result);
             
             if (!result.healthy) {
-                console.log(`❌ ${check.name} 服务异常`);
+                console.log(`❌ ${check.name} 服务异常: ${result.error || '服务无响应'}`);
                 // 发布服务异常事件
                 eventBus.publish('service.health.failed', {
                     service: check.name,
@@ -146,6 +193,12 @@ class HealthChecker {
      * 启动健康检查器
      */
     start() {
+        // 检查必要配置
+        if (!this.checkInterval || this.checkInterval < 1000) {
+            console.error('健康检查间隔配置无效，必须是大于1000的数字');
+            return;
+        }
+        
         // 立即执行一次检查
         this.runChecks();
         

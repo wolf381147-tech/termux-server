@@ -149,10 +149,29 @@ function checkWebStatus() {
       
       // 显示连接信息
       try {
-        const ipCommand = 'ip route get 1.1.1.1 | awk \'{print $7}\'';
-        if (isCommandSafe(ipCommand)) {
-          const localIP = execSync(ipCommand, { encoding: 'utf8' }).trim();
+        // 尝试多种方法获取IP地址
+        const ipCommands = [
+          'ip route get 1.1.1.1 | awk \'{print $7}\'',
+          'ifconfig | grep -Eo \'inet (addr:)?([0-9]*\\.){3}[0-9]*\' | grep -Eo \'([0-9]*\\.){3}[0-9]*\' | grep -v \'127.0.0.1\' | head -n 1',
+          'hostname -I | awk \'{print $1}\''
+        ];
+        
+        let localIP = null;
+        for (const ipCommand of ipCommands) {
+          if (isCommandSafe(ipCommand)) {
+            try {
+              localIP = execSync(ipCommand, { encoding: 'utf8' }).trim();
+              if (localIP) break;
+            } catch (e) {
+              // 继续尝试下一个命令
+            }
+          }
+        }
+        
+        if (localIP) {
           console.log(`访问地址: http://${localIP}:${WEB_PORT}`);
+        } else {
+          console.log('无法获取IP地址信息');
         }
       } catch (error) {
         console.log('无法获取IP地址信息');

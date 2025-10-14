@@ -128,18 +128,21 @@ class ConfigManager {
    * 验证关键配置项
    */
   validateEssentialConfigs() {
-    // 验证端口范围
-    this.validate('sshServer.port', 'number');
-    const sshPort = this.get('sshServer.port');
-    if (sshPort < 1 || sshPort > 65535) {
-      throw new Error('SSH端口必须在1-65535之间');
+    // 验证健康检查配置
+    const healthChecks = this.get('healthCheck.checks');
+    if (!Array.isArray(healthChecks)) {
+      throw new Error('healthCheck.checks 必须是一个数组');
     }
     
-    this.validate('webServer.port', 'number');
-    const webPort = this.get('webServer.port');
-    if (webPort < 1 || webPort > 65535) {
-      throw new Error('Web服务器端口必须在1-65535之间');
-    }
+    healthChecks.forEach((check, index) => {
+      if (!check.name || !check.port || !check.type) {
+        throw new Error(`healthCheck.checks[${index}] 缺少必要字段: name, port 或 type`);
+      }
+      
+      if (typeof check.port !== 'number' || check.port < 1 || check.port > 65535) {
+        throw new Error(`healthCheck.checks[${index}] 端口必须是1-65535之间的数字`);
+      }
+    });
     
     // 验证检查间隔
     const checkIntervals = [
@@ -155,13 +158,6 @@ class ConfigManager {
         console.warn(`${item.name}间隔过短，建议设置为1000ms以上`);
       }
     });
-    
-    // 验证电池电量阈值
-    this.validate('wakelock.minBatteryLevel', 'number');
-    const minBatteryLevel = this.get('wakelock.minBatteryLevel');
-    if (minBatteryLevel < 0 || minBatteryLevel > 100) {
-      throw new Error('最低电池电量必须在0-100之间');
-    }
   }
 
   /**

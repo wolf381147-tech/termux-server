@@ -60,6 +60,17 @@ class ServiceManager {
     start() {
         const { startCommand, workingDir } = this.config;
         
+        // 检查必要配置
+        if (!startCommand) {
+            console.error(`${this.serviceName} 服务缺少启动命令`);
+            eventBus.publish(`service.${this.serviceName.toLowerCase()}.start.failed`, {
+                service: this.serviceName,
+                error: '缺少启动命令',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
+        
         // 验证命令安全性
         if (!this.isCommandSafe(startCommand)) {
             console.error(`${this.serviceName} 服务启动命令不安全: ${startCommand}`);
@@ -114,6 +125,18 @@ class ServiceManager {
                     timestamp: new Date().toISOString()
                 });
             });
+            
+            this.process.on('error', (error) => {
+                console.error(`${this.serviceName} 服务进程错误:`, error);
+                this.isRunning = false;
+                
+                // 发布服务进程错误事件
+                eventBus.publish(`service.${this.serviceName.toLowerCase()}.process.error`, {
+                    service: this.serviceName,
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            });
         }
     }
     
@@ -122,6 +145,17 @@ class ServiceManager {
      */
     stop() {
         const { stopCommand } = this.config;
+        
+        // 检查必要配置
+        if (!stopCommand) {
+            console.error(`${this.serviceName} 服务缺少停止命令`);
+            eventBus.publish(`service.${this.serviceName.toLowerCase()}.stop.failed`, {
+                service: this.serviceName,
+                error: '缺少停止命令',
+                timestamp: new Date().toISOString()
+            });
+            return;
+        }
         
         // 验证命令安全性
         if (!this.isCommandSafe(stopCommand)) {
