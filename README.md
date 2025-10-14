@@ -27,21 +27,21 @@ termux-projects/
 
 ## 核心组件
 
-### 1. SSH服务 ([start-sshd.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/start-sshd.js))
+### 1. SSH服务 (start-sshd.js)
 启动和管理SSH服务，允许远程连接到设备。
 
-### 2. Web服务器 ([start-web.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/start-web.js))
+### 2. Web服务器 (start-web.js)
 启动Python HTTP服务器托管静态网站。
 
-### 3. 健康检查 ([health-check.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/health-check.js))
+### 3. 健康检查 (health-check.js)
 定期检查关键服务的可用性：
 - SSH服务 (端口 8022)
 - Web服务 (端口 8000)
 
-### 4. 服务监控 ([service-monitor.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/service-monitor.js))
+### 4. 服务监控 (service-monitor.js)
 监控PM2管理的服务并在服务停止时自动重启。
 
-### 5. 唤醒锁管理 ([wakelock-manager.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/wakelock-manager.js))
+### 5. 唤醒锁管理 (wakelock-manager.js)
 管理设备唤醒锁，防止CPU进入休眠状态。
 
 ## 安装和使用
@@ -67,7 +67,7 @@ termux-projects/
 
 ## 配置
 
-项目的配置文件位于 [termux-projects/config/](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/config/) 目录中，包括连接信息和SSH配置。
+项目的配置文件位于 termux-projects/config/ 目录中，包括连接信息和SSH配置。
 
 ## 注意事项
 

@@ -16,7 +16,6 @@ termux-projects/
 │   └── event-bus.js       # 事件总线
 ├── my-website/          # 默认托管网站
 ├── file-manager/        # 文件管理工具
-├── data-science/        # 数据科学相关脚本
 ├── scripts/             # 实用脚本
 ├── web-gui/             # Web图形界面
 └── projects/            # 其他项目文件
@@ -67,7 +66,7 @@ termux-projects/
 
 ### 配置管理
 
-项目使用集中式配置管理系统，所有服务参数都通过 [app-config.js](file:///e:/Termux%E5%A4%87%E4%BD%93/config/app-config.js) 文件进行管理。配置项支持通过环境变量进行覆盖，以适应不同的部署环境。
+项目使用集中式配置管理系统，所有服务参数都通过 app-config.js 文件进行管理。配置项支持通过环境变量进行覆盖，以适应不同的部署环境。
 
 配置结构:
 ```javascript
@@ -101,10 +100,10 @@ termux-projects/
 
 ### 通用服务管理器
 
-创建了 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BD%93/system/service-manager.js#L12-L185) 类，统一处理服务的启动、停止和监控逻辑。
+创建了 ServiceManager 类，统一处理服务的启动、停止和监控逻辑。
 
 优势：
-- 通过 [ServiceManager](file:///e:/Termux%E5%A4%87%E4%BD%93/system/service-manager.js#L12-L185) 统一管理所有服务
+- 通过 ServiceManager 统一管理所有服务
 - 减少了约60%的服务管理代码重复
 - 添加新服务类型只需配置参数，无需编写新的管理逻辑
 - 一致的事件发布机制
@@ -112,11 +111,10 @@ termux-projects/
 ### 快捷脚本重构
 
 将原有的 60 多个功能重复的脚本精简为 4 个统一管理脚本：
-- [menu-main](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/menu-main) - 主菜单系统
-- [service-ssh](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/service-ssh) - SSH服务统一管理器
-- [service-web](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/service-web) - Web服务统一管理器
-- [tool-backup](file:///e:/Termux%E5%A4%87%E4%BD%93/.shortcuts/tool-backup) - 系统状态快照工具
-
+- menu-main - 主菜单系统
+- service-ssh - SSH服务统一管理器
+- service-web - Web服务统一管理器
+- tool-backup - 系统状态快照工具
 
 ## 安全措施
 
