@@ -6,7 +6,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '128M',
+      max_memory_restart: '100M',
       env: {
         NODE_ENV: 'production'
       }
@@ -17,7 +17,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '128M',
+      max_memory_restart: '100M',
       env: {
         NODE_ENV: 'production'
       }
@@ -28,7 +28,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '128M',
+      max_memory_restart: '100M',
       env: {
         NODE_ENV: 'production'
       }
@@ -39,7 +39,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '128M',
+      max_memory_restart: '100M',
       env: {
         NODE_ENV: 'production'
       }
@@ -50,18 +50,7 @@ module.exports = {
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '128M',
-      env: {
-        NODE_ENV: 'production'
-      }
-    },
-    {
-      name: 'vscode',
-      script: 'termux-server-suite/system/start-vscode.js',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-      max_memory_restart: '256M',
+      max_memory_restart: '100M',
       env: {
         NODE_ENV: 'production'
       }

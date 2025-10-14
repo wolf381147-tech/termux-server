@@ -1,48 +1,51 @@
 {
-  "name": "termux-server-suite",
+  "name": "termux-server-project",
   "version": "1.0.0",
-  "description": "Termux服务器套件，集成SSH、Web服务器和系统监控功能",
+  "description": "A complete server solution built with Termux on Android",
+  "main": "index.js",
   "scripts": {
     "start:sshd": "node termux-server-suite/system/start-sshd.js",
     "start:web": "node termux-server-suite/system/start-web.js",
-    "start:vscode": "node termux-server-suite/system/start-vscode.js",
     "start:health-check": "node termux-server-suite/system/health-check.js",
     "start:service-monitor": "node termux-server-suite/system/service-monitor.js",
     "start:wakelock": "node termux-server-suite/system/wakelock-manager.js",
     "start:all": "pm2 start pm2.config.js",
-    "stop:all": "pm2 stop all",
-    "restart:all": "pm2 restart all",
+    "stop:all": "pm2 stop pm2.config.js",
     "status": "pm2 status",
     "logs": "pm2 logs",
-    "monit": "pm2 monit",
-    "dev:sshd": "nodemon termux-server-suite/system/start-sshd.js",
-    "dev:web": "nodemon termux-server-suite/system/start-web.js",
-    "dev:vscode": "nodemon termux-server-suite/system/start-vscode.js",
-    "dev:health-check": "nodemon termux-server-suite/system/health-check.js",
-    "dev:service-monitor": "nodemon termux-server-suite/system/service-monitor.js",
-    "dev:wakelock": "nodemon termux-server-suite/system/wakelock-manager.js"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "termux",
+    "android",
+    "server",
     "ssh",
-    "web-server",
-    "server-management",
-    "android-server"
+    "web-server"
   ],
-  "author": "Termux Server Suite Team",
+  "author": "Termux Developer",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wolf381147-tech/termux-server.git"
-  },
-  "bugs": {
-    "url": "https://github.com/wolf381147-tech/termux-server/issues"
-  },
-  "homepage": "https://github.com/wolf381147-tech/termux-server#readme",
   "dependencies": {
     "pm2": "^5.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "jest": "^29.0.0",
+    "jest-mock-process": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "termux-server-suite/system/**/*.js",
+      "termux-server-suite/config/**/*.js",
+      "!termux-server-suite/system/enhanced-health-check.js"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "coverageDirectory": "coverage"
   }
 }

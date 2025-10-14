@@ -18,9 +18,15 @@ show_main_menu() {
     echo "=========================================="
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
-    echo "1. 🖥️  服务器监控面板"
-    echo "2. 💾 备份工具"
-    echo "3. 🚪 退出"
+    echo "1. 🌐 SSH 服务管理"
+    echo "2. 🌐 Web 服务管理"
+    echo "3. 💾 备份工具"
+    echo "4. 📁 文件管理器"
+    echo "5. ⚙️  系统配置"
+    echo "6. 📊 系统状态"
+    echo "7. 🛠️  系统工具"
+    echo "8. 📚 帮助文档"
+    echo "0. 🚪 退出"
     echo "=========================================="
 }
 
@@ -30,10 +36,13 @@ show_ssh_menu() {
     echo "=========================================="
     echo "           🔐 SSH 服务管理"
     echo "=========================================="
-    echo "1. 🔁 切换SSH服务状态"
-    echo "2. ▶️  启动优化SSH服务（防息屏断联）"
-    echo "3. 📊 查看SSH状态和连接信息"
-    echo "0. ↩️  返回主菜单"
+    echo "1. 启动SSH服务"
+    echo "2. 启动优化SSH服务（防息屏断联）"
+    echo "3. 启动智能SSH模式"
+    echo "4. 停止SSH服务"
+    echo "5. 查看SSH状态"
+    echo "6. 显示连接信息"
+    echo "0. 返回主菜单"
     echo "=========================================="
 }
 
@@ -43,21 +52,13 @@ show_web_menu() {
     echo "=========================================="
     echo "           🌐 Web 服务管理"
     echo "=========================================="
-    echo "1. 🔁 切换Web服务器状态"
-    echo "2. 📊 查看Web状态和连接信息"
-    echo "0. ↩️  返回主菜单"
-    echo "=========================================="
-}
-
-# VS Code Server管理菜单
-show_vscode_menu() {
-    clear
-    echo "=========================================="
-    echo "           💻 VS Code Server 管理"
-    echo "=========================================="
-    echo "1. 🔁 切换VS Code Server状态"
-    echo "2. 📊 查看VS Code Server状态和连接信息"
-    echo "0. ↩️  返回监控面板"
+    echo "1. 启动Web服务器"
+    echo "2. 启动Web文件管理器"
+    echo "3. 启动Web GUI"
+    echo "4. 停止Web服务"
+    echo "5. 查看Web服务状态"
+    echo "6. 显示连接信息"
+    echo "0. 返回主菜单"
     echo "=========================================="
 }
 
@@ -65,15 +66,15 @@ show_vscode_menu() {
 show_backup_menu() {
     clear
     echo "=========================================="
-    echo "           💾 系统状态快照工具"
+    echo "           💾 备份工具"
     echo "=========================================="
-    echo "说明: 本工具专注于保存和恢复完整的Termux运行环境，"
-    echo "      与Git版本控制协同工作而非替代它。"
-    echo ""
-    echo "1. 📸 创建系统状态快照"
-    echo "2. 📋 列出快照文件"
-    echo "3. 🧹 清理旧快照"
-    echo "0. ↩️  返回主菜单"
+    echo "1. 项目备份"
+    echo "2. 系统备份"
+    echo "3. 完整备份"
+    echo "4. 终极备份"
+    echo "5. 列出备份文件"
+    echo "6. 清理旧备份"
+    echo "0. 返回主菜单"
     echo "=========================================="
 }
 
@@ -85,20 +86,25 @@ handle_ssh_menu() {
         
         case $ssh_choice in
             1)
-                echo -e "${BLUE}切换SSH服务状态...${NC}"
-                ~/.shortcuts/service-ssh toggle
+                ~/.shortcuts/service-ssh start
                 read -p "按回车键继续..."
                 ;;
             2)
-                echo -e "${BLUE}启动优化SSH服务...${NC}"
                 ~/.shortcuts/service-ssh start --optimized
-                echo -e "${GREEN}✅ 优化SSH服务启动完成${NC}"
                 read -p "按回车键继续..."
                 ;;
             3)
-                echo -e "${BLUE}检查SSH服务状态...${NC}"
+                ~/.shortcuts/service-ssh start --smart-mode
+                ;;
+            4)
+                ~/.shortcuts/service-ssh stop
+                read -p "按回车键继续..."
+                ;;
+            5)
                 ~/.shortcuts/service-ssh status
-                echo -e "${BLUE}显示SSH连接信息...${NC}"
+                read -p "按回车键继续..."
+                ;;
+            6)
                 ~/.shortcuts/service-ssh info --with-guide
                 read -p "按回车键继续..."
                 ;;
@@ -121,45 +127,33 @@ handle_web_menu() {
         
         case $web_choice in
             1)
-                echo -e "${BLUE}切换Web服务器状态...${NC}"
-                ~/.shortcuts/service-web toggle --type server
+                ~/.shortcuts/service-web start --type server
                 read -p "按回车键继续..."
                 ;;
             2)
-                echo -e "${BLUE}检查Web服务状态...${NC}"
+                ~/.shortcuts/service-web start --type manager --background
+                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                read -p "按回车键继续..."
+                ;;
+            3)
+                ~/.shortcuts/service-web start --type gui
+                read -p "按回车键继续..."
+                ;;
+            4)
+                ~/.shortcuts/service-web stop --type server
+                ~/.shortcuts/service-web stop --type manager
+                ~/.shortcuts/service-web stop --type gui
+                echo -e "${GREEN}所有Web服务已停止${NC}"
+                read -p "按回车键继续..."
+                ;;
+            5)
                 ~/.shortcuts/service-web status --type server
-                echo -e "${BLUE}显示Web连接信息...${NC}"
-                ~/.shortcuts/service-web info --type server --with-guide
+                ~/.shortcuts/service-web status --type manager
+                ~/.shortcuts/service-web status --type gui
                 read -p "按回车键继续..."
                 ;;
-            0)
-                return
-                ;;
-            *)
-                echo -e "${RED}无效选择，请重新输入${NC}"
-                sleep 1
-                ;;
-        esac
-    done
-}
-
-# 处理VS Code Server菜单选项
-handle_vscode_menu() {
-    while true; do
-        show_vscode_menu
-        read -p "请选择: " vscode_choice
-        
-        case $vscode_choice in
-            1)
-                echo -e "${BLUE}切换VS Code Server状态...${NC}"
-                ~/.shortcuts/service-web toggle --type vscode
-                read -p "按回车键继续..."
-                ;;
-            2)
-                echo -e "${BLUE}检查VS Code Server状态...${NC}"
-                ~/.shortcuts/service-web status --type vscode
-                echo -e "${BLUE}显示VS Code Server连接信息...${NC}"
-                ~/.shortcuts/service-web info --type vscode --with-guide
+            6)
+                ~/.shortcuts/service-web info --with-guide
                 read -p "按回车键继续..."
                 ;;
             0)
@@ -181,19 +175,27 @@ handle_backup_menu() {
         
         case $backup_choice in
             1)
-                echo -e "${BLUE}创建系统状态快照...${NC}"
-                ~/.shortcuts/tool-backup snapshot
-                echo -e "${GREEN}✅ 系统状态快照创建完成${NC}"
+                ~/.shortcuts/tool-backup backup --type project
                 read -p "按回车键继续..."
                 ;;
             2)
-                echo -e "${BLUE}列出快照文件...${NC}"
-                ~/.shortcuts/tool-backup list
+                ~/.shortcuts/tool-backup backup --type system
                 read -p "按回车键继续..."
                 ;;
             3)
-                echo -e "${BLUE}清理旧快照...${NC}"
-                ~/.shortcuts/tool-backup clean --keep 3
+                ~/.shortcuts/tool-backup backup --type full
+                read -p "按回车键继续..."
+                ;;
+            4)
+                ~/.shortcuts/tool-backup backup --type ultimate
+                read -p "按回车键继续..."
+                ;;
+            5)
+                ~/.shortcuts/tool-backup list
+                read -p "按回车键继续..."
+                ;;
+            6)
+                ~/.shortcuts/tool-backup clean
                 read -p "按回车键继续..."
                 ;;
             0)
@@ -209,25 +211,51 @@ handle_backup_menu() {
 
 # 主程序循环
 main() {
-    # 检查是否有参数，支持直接跳转到指定功能
-    if [ "$1" = "backup" ]; then
-        handle_backup_menu
-        return
-    fi
-    
     while true; do
         show_main_menu
         read -p "请选择: " main_choice
         
         case $main_choice in
             1)
-                # 服务器监控面板
-                ~/.shortcuts/server-monitor
+                handle_ssh_menu
                 ;;
             2)
-                handle_backup_menu
+                handle_web_menu
                 ;;
             3)
+                handle_backup_menu
+                ;;
+            4)
+                echo -e "${YELLOW}启动文件管理器...${NC}"
+                ~/.shortcuts/service-web start --type manager --background
+                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                read -p "按回车键继续..."
+                ;;
+            5)
+                echo -e "${YELLOW}系统配置功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            6)
+                echo -e "${YELLOW}显示系统状态...${NC}"
+                if command -v neofetch >/dev/null 2>&1; then
+                    neofetch
+                else
+                    echo "系统信息:"
+                    uname -a
+                    echo "用户: $(whoami)"
+                    echo "当前目录: $(pwd)"
+                fi
+                read -p "按回车键继续..."
+                ;;
+            7)
+                echo -e "${YELLOW}系统工具功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            8)
+                echo -e "${YELLOW}帮助文档功能将在后续版本中实现${NC}"
+                read -p "按回车键继续..."
+                ;;
+            0)
                 echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
                 exit 0
                 ;;
@@ -240,4 +268,4 @@ main() {
 }
 
 # 执行主程序
-main "$@"
+main

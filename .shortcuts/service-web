@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# Web服务统一管理器
-# 支持管理Web服务器和VS Code Server服务
+# 统一Web服务管理器
+# 支持Web服务器、文件管理器、Web GUI等功能
+
+# 默认配置
+WEB_PORT=8000
+WEB_DIR="/data/data/com.termux/files/home/storage/shared/termux-projects"
+WEB_USER=$(whoami)
 
 # 颜色定义
 RED='\033[0;31m'
@@ -10,329 +15,241 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 默认配置
-WEBSITE_DIR="./termux-server-suite/my-website"
-DEFAULT_WEB_PORT=8000
-DEFAULT_VSCODE_PORT=8080
-
-# 显示使用帮助
+# 显示帮助信息
 show_help() {
-    echo "Web服务统一管理器"
-    echo ""
-    echo "用法:"
-    echo "  $0 [命令] [选项]"
+    echo "用法: service-web [选项] <命令>"
     echo ""
     echo "命令:"
-    echo "  start     启动指定类型的服务"
-    echo "  stop      停止指定类型的服务"
-    echo "  restart   重启指定类型的服务"
-    echo "  status    检查指定类型的服务状态"
-    echo "  toggle    切换指定类型的服务状态"
-    echo "  info      显示指定类型的服务连接信息"
+    echo "  start     启动Web服务"
+    echo "  stop      停止Web服务"
+    echo "  status    查看Web服务状态"
+    echo "  info      显示连接信息"
     echo ""
     echo "选项:"
-    echo "  --type <server|manager|vscode>  指定服务类型 (默认: server)"
-    echo "  --background                    在后台启动管理器"
-    echo "  --with-guide                    显示连接指南"
+    echo "  -t, --type TYPE         服务类型 (server|manager|gui)"
+    echo "  -d, --dir DIRECTORY     Web目录"
+    echo "  -p, --port PORT         端口号"
+    echo "  -b, --background        后台运行"
+    echo "  -g, --with-guide        显示使用指南"
+    echo "  -h, --help              显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  $0 start --type server          启动Web服务器"
-    echo "  $0 stop --type vscode           停止VS Code Server"
-    echo "  $0 toggle --type server         切换Web服务器状态"
+    echo "  service-web start --type server"
+    echo "  service-web start --type manager --background"
+    echo "  service-web stop --type server"
+    echo "  service-web info"
 }
 
 # 获取本地IP地址
 get_local_ip() {
-    local ip=""
-    
-    # 尝试使用ip命令获取IP地址
-    if command -v ip >/dev/null 2>&1; then
-        ip=$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7}' | head -n 1)
-    fi
-    
-    # 如果ip命令失败，尝试使用ifconfig
-    if [ -z "$ip" ] && command -v ifconfig >/dev/null 2>&1; then
-        ip=$(ifconfig 2>/dev/null | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-    fi
-    
-    # 如果ifconfig也失败，尝试使用netcfg
-    if [ -z "$ip" ] && command -v netcfg >/dev/null 2>&1; then
-        ip=$(netcfg 2>/dev/null | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-    fi
-    
-    # 如果netcfg也失败，尝试使用hostname命令
-    if [ -z "$ip" ] && command -v hostname >/dev/null 2>&1; then
-        ip=$(hostname -I 2>/dev/null | awk '{print $1}')
-    fi
-    
-    echo "$ip"
+    ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1
 }
 
-# 检查端口是否被占用
-is_port_in_use() {
-    local port=$1
-    if netstat -tuln 2>/dev/null | grep -q ":$port "; then
-        return 0  # 端口被占用
-    else
-        return 1  # 端口未被占用
-    fi
+# 获取公共IP地址
+get_public_ip() {
+    curl -s https://api.ipify.org 2>/dev/null || echo "无法获取公共IP"
 }
 
-# 启动Web服务器
-start_web_server() {
-    echo -e "${BLUE}正在启动Web服务器...${NC}"
+# 启动Web服务
+start_web() {
+    local service_type=$1
+    local background=$2
+    local port=$3
+    local directory=$4
     
-    # 检查网站目录是否存在
-    if [ ! -d "$WEBSITE_DIR" ]; then
-        echo -e "${RED}错误: 网站目录不存在: $WEBSITE_DIR${NC}"
-        exit 1
+    # 设置默认值
+    if [ -z "$port" ]; then
+        port=$WEB_PORT
     fi
     
-    # 检查端口是否被占用
-    if is_port_in_use $DEFAULT_WEB_PORT; then
-        echo -e "${YELLOW}警告: 端口 $DEFAULT_WEB_PORT 已被占用${NC}"
-        echo -e "${YELLOW}请先停止占用该端口的服务${NC}"
-        exit 1
+    if [ -z "$directory" ]; then
+        directory=$WEB_DIR
     fi
     
-    # 启动Web服务器
-    cd "$WEBSITE_DIR" || exit 1
-    python3 -m http.server $DEFAULT_WEB_PORT > /dev/null 2>&1 &
-    local pid=$!
-    cd - > /dev/null
+    echo -e "${BLUE}启动Web服务 ($service_type)...${NC}"
     
-    # 保存PID到文件
-    echo $pid > /tmp/webserver.pid
-    
-    sleep 1
-    
-    # 检查服务是否启动成功
-    if is_port_in_use $DEFAULT_WEB_PORT; then
-        echo -e "${GREEN}✅ Web服务器启动成功${NC}"
-        echo -e "${GREEN}端口: $DEFAULT_WEB_PORT${NC}"
-        echo -e "${GREEN}目录: $WEBSITE_DIR${NC}"
-    else
-        echo -e "${RED}❌ Web服务器启动失败${NC}"
-        rm -f /tmp/webserver.pid
-        exit 1
-    fi
-}
-
-# 停止Web服务器
-stop_web_server() {
-    echo -e "${BLUE}正在停止Web服务器...${NC}"
-    
-    # 检查PID文件是否存在
-    if [ -f /tmp/webserver.pid ]; then
-        local pid=$(cat /tmp/webserver.pid)
-        if kill -0 $pid 2>/dev/null; then
-            kill $pid
-            rm -f /tmp/webserver.pid
-            echo -e "${GREEN}✅ Web服务器已停止${NC}"
-        else
-            echo -e "${YELLOW}⚠️  Web服务器未运行${NC}"
-            rm -f /tmp/webserver.pid
-        fi
-    else
-        # 尝试通过pkill停止
-        if pkill -f "python3 -m http.server $DEFAULT_WEB_PORT" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ Web服务器已停止${NC}"
-        else
-            echo -e "${YELLOW}⚠️  Web服务器未运行${NC}"
-        fi
-    fi
-}
-
-# 检查Web服务器状态
-check_web_server_status() {
-    if is_port_in_use $DEFAULT_WEB_PORT; then
-        echo -e "${GREEN}✅ Web服务器正在运行${NC}"
-        return 0
-    else
-        echo -e "${RED}❌ Web服务器未运行${NC}"
-        return 1
-    fi
-}
-
-# 启动VS Code Server
-start_vscode_server() {
-    echo -e "${BLUE}正在启动VS Code Server...${NC}"
-    
-    # 检查code-server是否已安装
-    if ! command -v code-server >/dev/null 2>&1; then
-        echo -e "${YELLOW}⚠️  code-server未安装，正在尝试安装...${NC}"
-        
-        # 尝试安装code-server
-        if command -v npm >/dev/null 2>&1; then
-            npm install -g code-server
-            if [ $? -ne 0 ]; then
-                echo -e "${RED}❌ code-server安装失败${NC}"
-                exit 1
+    case $service_type in
+        server)
+            # 启动Python Web服务器
+            if [ "$background" = "true" ]; then
+                cd "$directory" && python -m http.server $port > /dev/null 2>&1 &
+                echo -e "${GREEN}Web服务器已在后台启动${NC}"
+            else
+                echo -e "${YELLOW}在目录 $directory 启动Web服务器，端口 $port${NC}"
+                cd "$directory" && python -m http.server $port
             fi
-            echo -e "${GREEN}✅ code-server安装成功${NC}"
-        else
-            echo -e "${RED}❌ 未找到npm，请先安装Node.js${NC}"
-            exit 1
-        fi
-    fi
-    
-    # 检查端口是否被占用
-    if is_port_in_use $DEFAULT_VSCODE_PORT; then
-        echo -e "${YELLOW}警告: 端口 $DEFAULT_VSCODE_PORT 已被占用${NC}"
-        echo -e "${YELLOW}请先停止占用该端口的服务${NC}"
-        exit 1
-    fi
-    
-    # 启动VS Code Server
-    code-server --port $DEFAULT_VSCODE_PORT --host 0.0.0.0 --auth none ./ > /dev/null 2>&1 &
-    local pid=$!
-    
-    # 保存PID到文件
-    echo $pid > /tmp/vscode.pid
-    
-    sleep 2
-    
-    # 检查服务是否启动成功
-    if is_port_in_use $DEFAULT_VSCODE_PORT; then
-        echo -e "${GREEN}✅ VS Code Server启动成功${NC}"
-        echo -e "${GREEN}端口: $DEFAULT_VSCODE_PORT${NC}"
-    else
-        echo -e "${RED}❌ VS Code Server启动失败${NC}"
-        rm -f /tmp/vscode.pid
-        exit 1
-    fi
-}
-
-# 停止VS Code Server
-stop_vscode_server() {
-    echo -e "${BLUE}正在停止VS Code Server...${NC}"
-    
-    # 检查PID文件是否存在
-    if [ -f /tmp/vscode.pid ]; then
-        local pid=$(cat /tmp/vscode.pid)
-        if kill -0 $pid 2>/dev/null; then
-            kill $pid
-            rm -f /tmp/vscode.pid
-            echo -e "${GREEN}✅ VS Code Server已停止${NC}"
-        else
-            echo -e "${YELLOW}⚠️  VS Code Server未运行${NC}"
-            rm -f /tmp/vscode.pid
-        fi
-    else
-        # 尝试通过pkill停止
-        if pkill -f "code-server.*--port $DEFAULT_VSCODE_PORT" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ VS Code Server已停止${NC}"
-        else
-            echo -e "${YELLOW}⚠️  VS Code Server未运行${NC}"
-        fi
-    fi
-}
-
-# 检查VS Code Server状态
-check_vscode_server_status() {
-    if is_port_in_use $DEFAULT_VSCODE_PORT; then
-        echo -e "${GREEN}✅ VS Code Server正在运行${NC}"
-        return 0
-    else
-        echo -e "${RED}❌ VS Code Server未运行${NC}"
-        return 1
-    fi
-}
-
-# 显示Web服务器连接信息
-show_web_server_info() {
-    local show_guide=$1
-    
-    if check_web_server_status > /dev/null 2>&1; then
-        local ip=$(get_local_ip)
-        if [ -n "$ip" ]; then
-            echo -e "${GREEN}Web服务器连接信息:${NC}"
-            echo "  地址: http://$ip:$DEFAULT_WEB_PORT"
-            echo "  端口: $DEFAULT_WEB_PORT"
-            echo "  目录: $WEBSITE_DIR"
-            
-            if [ "$show_guide" = "true" ]; then
-                echo ""
-                echo -e "${BLUE}使用说明:${NC}"
-                echo "  1. 在浏览器中打开上述地址"
-                echo "  2. 即可访问托管的网站内容"
+            ;;
+        manager)
+            # 启动Web文件管理器
+            if [ "$background" = "true" ]; then
+                # 杀死可能存在的旧进程
+                pkill -f "web-file-manager.py" 2>/dev/null
+                
+                # 启动Web文件管理器，并保持运行
+                while true; do
+                    python /data/data/com.termux/files/home/web-file-manager.py > /dev/null 2>&1 &
+                    echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                    break
+                done
+            else
+                python /data/data/com.termux/files/home/web-file-manager.py
             fi
-        else
-            echo -e "${RED}无法获取本地IP地址${NC}"
-        fi
-    else
-        echo -e "${RED}Web服务器未运行${NC}"
-    fi
+            ;;
+        gui)
+            # 启动Web GUI
+            echo -e "${YELLOW}启动Web GUI...${NC}"
+            python /data/data/com.termux/files/home/web-gui/app.py
+            ;;
+        *)
+            echo -e "${RED}未知服务类型: $service_type${NC}"
+            return 1
+            ;;
+    esac
 }
 
-# 显示VS Code Server连接信息
-show_vscode_server_info() {
-    local show_guide=$1
+# 停止Web服务
+stop_web() {
+    local service_type=$1
     
-    if check_vscode_server_status > /dev/null 2>&1; then
-        local ip=$(get_local_ip)
-        if [ -n "$ip" ]; then
-            echo -e "${GREEN}VS Code Server连接信息:${NC}"
-            echo "  地址: http://$ip:$DEFAULT_VSCODE_PORT"
-            echo "  端口: $DEFAULT_VSCODE_PORT"
-            
-            if [ "$show_guide" = "true" ]; then
-                echo ""
-                echo -e "${BLUE}使用说明:${NC}"
-                echo "  1. 在浏览器中打开上述地址"
-                echo "  2. 即可访问完整的VS Code环境"
-                echo "  3. 可以直接编辑项目文件"
-                echo "  4. 支持扩展安装和终端使用"
+    echo -e "${BLUE}停止Web服务 ($service_type)...${NC}"
+    
+    case $service_type in
+        server)
+            pkill -f "http.server" 2>/dev/null
+            echo -e "${GREEN}Web服务器已停止${NC}"
+            ;;
+        manager)
+            pkill -f "web-file-manager.py" 2>/dev/null
+            echo -e "${GREEN}Web文件管理器已停止${NC}"
+            ;;
+        gui)
+            pkill -f "web-gui/app.py" 2>/dev/null
+            echo -e "${GREEN}Web GUI已停止${NC}"
+            ;;
+        *)
+            echo -e "${RED}未知服务类型: $service_type${NC}"
+            return 1
+            ;;
+    esac
+}
+
+# 查看Web服务状态
+status_web() {
+    local service_type=$1
+    
+    case $service_type in
+        server)
+            if pgrep -f "http.server" > /dev/null; then
+                echo -e "${GREEN}Web服务器正在运行${NC}"
+            else
+                echo -e "${RED}Web服务器未运行${NC}"
             fi
-        else
-            echo -e "${RED}无法获取本地IP地址${NC}"
-        fi
-    else
-        echo -e "${RED}VS Code Server未运行${NC}"
+            ;;
+        manager)
+            if pgrep -f "web-file-manager.py" > /dev/null; then
+                echo -e "${GREEN}Web文件管理器正在运行${NC}"
+            else
+                echo -e "${RED}Web文件管理器未运行${NC}"
+            fi
+            ;;
+        gui)
+            if pgrep -f "web-gui/app.py" > /dev/null; then
+                echo -e "${GREEN}Web GUI正在运行${NC}"
+            else
+                echo -e "${RED}Web GUI未运行${NC}"
+            fi
+            ;;
+        *)
+            echo -e "${RED}未知服务类型: $service_type${NC}"
+            return 1
+            ;;
+    esac
+}
+
+# 显示连接信息
+show_info() {
+    local with_guide=$1
+    local port=$2
+    
+    # 设置默认端口
+    if [ -z "$port" ]; then
+        port=$WEB_PORT
+    fi
+    
+    local local_ip=$(get_local_ip)
+    local public_ip=$(get_public_ip)
+    
+    if [ -z "$local_ip" ]; then
+        local_ip="无法获取本地IP，请检查WiFi连接"
+    fi
+    
+    echo "=========================================="
+    echo "           🌐 Web服务连接信息"
+    echo "=========================================="
+    echo "📱 本地IP: $local_ip"
+    echo "🌐 公共IP: $public_ip"
+    echo "🔌 端口: $port"
+    echo "📂 目录: $WEB_DIR"
+    echo "=========================================="
+    echo "💻 访问地址:"
+    echo "   http://$local_ip:$port"
+    echo "=========================================="
+    
+    if [ "$with_guide" = "true" ]; then
+        echo ""
+        echo "💡 使用指南:"
+        echo "   1. 确保手机和电脑在同一WiFi网络"
+        echo "   2. 在电脑浏览器中打开上述地址"
+        echo "   3. 可以访问共享目录中的文件"
+        echo "   4. 文件管理器提供更多文件操作功能"
     fi
 }
 
-# 切换Web服务器状态
-toggle_web_server() {
-    if check_web_server_status > /dev/null 2>&1; then
-        stop_web_server
-    else
-        start_web_server
-    fi
-}
-
-# 切换VS Code Server状态
-toggle_vscode_server() {
-    if check_vscode_server_status > /dev/null 2>&1; then
-        stop_vscode_server
-    else
-        start_vscode_server
-    fi
-}
-
-# 主程序
+# 主程序逻辑
 main() {
-    # 解析命令行参数
     local command=""
     local service_type="server"
     local background=false
+    local port=""
+    local directory=""
     local with_guide=false
     
+    # 解析命令行参数
     while [[ $# -gt 0 ]]; do
         case $1 in
-            start|stop|restart|status|toggle|info)
-                command=$1
+            start)
+                command="start"
                 shift
                 ;;
-            --type)
+            stop)
+                command="stop"
+                shift
+                ;;
+            status)
+                command="status"
+                shift
+                ;;
+            info)
+                command="info"
+                shift
+                ;;
+            -t|--type)
                 service_type="$2"
                 shift 2
                 ;;
-            --background)
+            -d|--dir)
+                directory="$2"
+                shift 2
+                ;;
+            -p|--port)
+                port="$2"
+                shift 2
+                ;;
+            -b|--background)
                 background=true
                 shift
                 ;;
-            --with-guide)
+            -g|--with-guide)
                 with_guide=true
                 shift
                 ;;
@@ -348,68 +265,25 @@ main() {
         esac
     done
     
-    # 根据服务类型执行相应操作
-    case $service_type in
-        server)
-            case $command in
-                start)
-                    start_web_server
-                    ;;
-                stop)
-                    stop_web_server
-                    ;;
-                restart)
-                    stop_web_server
-                    sleep 1
-                    start_web_server
-                    ;;
-                status)
-                    check_web_server_status
-                    ;;
-                toggle)
-                    toggle_web_server
-                    ;;
-                info)
-                    show_web_server_info $with_guide
-                    ;;
-                *)
-                    echo -e "${RED}未知命令: $command${NC}"
-                    show_help
-                    exit 1
-                    ;;
-            esac
+    # 执行相应命令
+    case $command in
+        start)
+            start_web $service_type $background $port $directory
+            if [ "$background" != "true" ]; then
+                show_info $with_guide $port
+            fi
             ;;
-        vscode)
-            case $command in
-                start)
-                    start_vscode_server
-                    ;;
-                stop)
-                    stop_vscode_server
-                    ;;
-                restart)
-                    stop_vscode_server
-                    sleep 1
-                    start_vscode_server
-                    ;;
-                status)
-                    check_vscode_server_status
-                    ;;
-                toggle)
-                    toggle_vscode_server
-                    ;;
-                info)
-                    show_vscode_server_info $with_guide
-                    ;;
-                *)
-                    echo -e "${RED}未知命令: $command${NC}"
-                    show_help
-                    exit 1
-                    ;;
-            esac
+        stop)
+            stop_web $service_type
+            ;;
+        status)
+            status_web $service_type
+            ;;
+        info)
+            show_info $with_guide $port
             ;;
         *)
-            echo -e "${RED}未知服务类型: $service_type${NC}"
+            echo -e "${RED}请指定有效命令${NC}"
             show_help
             exit 1
             ;;

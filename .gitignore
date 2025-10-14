@@ -11,11 +11,6 @@ logs/
 
 # IDE and editor files
 .vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
 .idea/
 *.swp
 *.swo
@@ -35,65 +30,8 @@ Icon?
 *.bak
 *.backup
 
-# PM2
-.pm2/
-
-# MyPy cache
-.mypy_cache/
-
-# SSH keys and config
-.ssh/
-
-# System-specific files
-installed-packages.txt
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Test coverage
-coverage/
-*.lcov
-
-# Jest
-.jest/
-
-# Package lock files
-package-lock.json
-yarn.lock
-
-# Build outputs
-dist/
-build/
-
-# Temporary files
-*.tmp
-*.temp
-tmp/
-temp/
-
-# Documentation builds
-docs/_build/
-
-# Runtime data
-.pid
-.pid.lock
-
-# Coverage reports
-coverage/
-*.lcov
-
-# Editor directories and files
-.atom/
-.build/
-.pydevproject
-.settings/
-.tm_properties
-*.sublime-project
-*.sublime-workspace
-
 # Termux specific files
+.ssh/
 .shortcuts/
 .tmux.conf
 .bashrc
@@ -111,6 +49,10 @@ termux-projects/logs/
 *.exe
 *.o
 *.so
+
+# Temporary files
+tmp/
+temp/
 
 # Package files
 *.tar.gz
