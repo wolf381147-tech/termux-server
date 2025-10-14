@@ -5,16 +5,15 @@
 ```
 termux-projects/
 ├── config/              # 配置文件目录
-├── data/                # 数据存储目录
 ├── docs/                # 项目文档目录
-├── logs/                # 日志文件目录
 ├── system/              # 核心系统服务
 │   ├── start-sshd.js      # SSH服务管理
 │   ├── start-web.js       # Web服务器管理
 │   ├── health-check.js    # 健康检查服务
 │   ├── service-monitor.js # 服务监控
 │   ├── wakelock-manager.js# 唤醒锁管理
-│   └── enhanced-health-check.js # 增强版健康检查(示例)
+│   ├── service-manager.js # 通用服务管理器
+│   └── event-bus.js       # 事件总线
 ├── my-website/          # 默认托管网站
 ├── file-manager/        # 文件管理工具
 ├── data-science/        # 数据科学相关脚本
@@ -28,14 +27,13 @@ termux-projects/
 ### config/
 存放项目的配置文件，如 [app-config.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/config/app-config.js) 等。
 
-### data/
-用于存储应用数据，如数据库文件、缓存文件等。
-
 ### docs/
-项目相关文档，如本文件、API文档等。
-
-### logs/
-应用日志文件存储目录。
+项目相关文档，包括：
+- 配置使用说明
+- 事件驱动架构文档
+- 项目结构说明
+- 重构总结
+- 测试指南
 
 ### system/
 核心系统服务模块，包含所有基础服务的实现：
@@ -44,6 +42,8 @@ termux-projects/
 - 健康检查服务
 - 服务监控
 - 唤醒锁管理
+- 通用服务管理器
+- 事件总线
 
 ### my-website/
 默认托管的网站文件，通过Python HTTP服务器提供访问。
@@ -64,6 +64,8 @@ termux-projects/
 3. [health-check.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/health-check.js) - 系统健康检查服务
 4. [service-monitor.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-monitor.js) - 服务监控和自动恢复
 5. [wakelock-manager.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/wakelock-manager.js) - 设备唤醒锁管理
+6. [service-manager.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/service-manager.js) - 通用服务管理器
+7. [event-bus.js](file:///e:/Termux%E5%A4%87%E4%BB%BD/termux-projects/system/event-bus.js) - 中央事件总线
 
 ## 运行和管理
 
