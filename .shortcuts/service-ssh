@@ -183,6 +183,8 @@ toggle_ssh() {
         start_ssh
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ SSH服务已启动${NC}"
+            # 显示连接信息
+            show_info
         else
             echo -e "${RED}❌ 启动SSH服务失败${NC}"
             exit 1

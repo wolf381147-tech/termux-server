@@ -19,11 +19,8 @@ show_main_menu() {
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
     echo "1. 🖥️  服务器监控面板"
-    echo "2. 🔐 SSH 服务管理"
-    echo "3. 🌐 Web 服务管理"
-    echo "4. 💾 备份工具"
-    echo "5. 📊 系统状态"
-    echo "6. 🚪 退出"
+    echo "2. 💾 备份工具"
+    echo "3. 🚪 退出"
     echo "=========================================="
 }
 
@@ -171,13 +168,7 @@ handle_backup_menu() {
 # 主程序循环
 main() {
     # 检查是否有参数，支持直接跳转到指定功能
-    if [ "$1" = "ssh" ]; then
-        handle_ssh_menu
-        return
-    elif [ "$1" = "web" ]; then
-        handle_web_menu
-        return
-    elif [ "$1" = "backup" ]; then
+    if [ "$1" = "backup" ]; then
         handle_backup_menu
         return
     fi
@@ -192,27 +183,9 @@ main() {
                 ~/.shortcuts/server-monitor
                 ;;
             2)
-                handle_ssh_menu
-                ;;
-            3)
-                handle_web_menu
-                ;;
-            4)
                 handle_backup_menu
                 ;;
-            5)
-                echo -e "${YELLOW}显示系统状态...${NC}"
-                if command -v neofetch >/dev/null 2>&1; then
-                    neofetch
-                else
-                    echo "系统信息:"
-                    uname -a
-                    echo "用户: $(whoami)"
-                    echo "当前目录: $(pwd)"
-                fi
-                read -p "按回车键继续..."
-                ;;
-            6)
+            3)
                 echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
                 exit 0
                 ;;

@@ -252,7 +252,7 @@ toggle_web() {
         server)
             if pgrep -f "http.server" > /dev/null; then
                 echo -e "${BLUE}正在停止Web服务器...${NC}"
-                stop_web "server"
+                stop_web_server
                 if [ $? -eq 0 ]; then
                     echo -e "${GREEN}✅ Web服务器已停止${NC}"
                 else
@@ -261,9 +261,11 @@ toggle_web() {
                 fi
             else
                 echo -e "${BLUE}正在启动Web服务器...${NC}"
-                start_web "server"
+                start_web_server
                 if [ $? -eq 0 ]; then
                     echo -e "${GREEN}✅ Web服务器已启动${NC}"
+                    # 显示连接信息
+                    show_info "server"
                 else
                     echo -e "${RED}❌ 启动Web服务器失败${NC}"
                     exit 1
@@ -271,30 +273,32 @@ toggle_web() {
             fi
             ;;
         manager)
-            if pgrep -f "web-file-manager.py" > /dev/null; then
-                echo -e "${BLUE}正在停止Web文件管理器...${NC}"
-                stop_web "manager"
+            if pgrep -f "filemanager.py" > /dev/null; then
+                echo -e "${BLUE}正在停止文件管理器...${NC}"
+                stop_file_manager
                 if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}✅ Web文件管理器已停止${NC}"
+                    echo -e "${GREEN}✅ 文件管理器已停止${NC}"
                 else
-                    echo -e "${RED}❌ 停止Web文件管理器失败${NC}"
+                    echo -e "${RED}❌ 停止文件管理器失败${NC}"
                     exit 1
                 fi
             else
-                echo -e "${BLUE}正在启动Web文件管理器...${NC}"
-                start_web "manager"
+                echo -e "${BLUE}正在启动文件管理器...${NC}"
+                start_file_manager $2
                 if [ $? -eq 0 ]; then
-                    echo -e "${GREEN}✅ Web文件管理器已启动${NC}"
+                    echo -e "${GREEN}✅ 文件管理器已启动${NC}"
+                    # 显示连接信息
+                    show_info "manager"
                 else
-                    echo -e "${RED}❌ 启动Web文件管理器失败${NC}"
+                    echo -e "${RED}❌ 启动文件管理器失败${NC}"
                     exit 1
                 fi
             fi
             ;;
         gui)
-            if pgrep -f "web-gui/app.py" > /dev/null; then
+            if pgrep -f "app.py" > /dev/null; then
                 echo -e "${BLUE}正在停止Web GUI...${NC}"
-                stop_web "gui"
+                stop_web_gui
                 if [ $? -eq 0 ]; then
                     echo -e "${GREEN}✅ Web GUI已停止${NC}"
                 else
@@ -303,9 +307,11 @@ toggle_web() {
                 fi
             else
                 echo -e "${BLUE}正在启动Web GUI...${NC}"
-                start_web "gui"
+                start_web_gui
                 if [ $? -eq 0 ]; then
                     echo -e "${GREEN}✅ Web GUI已启动${NC}"
+                    # 显示连接信息
+                    show_info "gui"
                 else
                     echo -e "${RED}❌ 启动Web GUI失败${NC}"
                     exit 1
@@ -314,6 +320,7 @@ toggle_web() {
             ;;
         *)
             echo -e "${RED}未知服务类型: $service_type${NC}"
+            show_help
             exit 1
             ;;
     esac
