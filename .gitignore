@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env*
+!.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store?
+ehthumbs.db
+Icon?
+*.DS_Store
+.Spotlight-V100
+.Trashes
+
+# Backup files
+*.bak
+*.backup
+
+# Termux specific files
+.ssh/
+.shortcuts/
+.tmux.conf
+.bashrc
+
+# Config files that may contain sensitive information
+termux-projects/config/
+termux-projects/ssh-quick-connect.txt
+termux-projects/connection-info.txt
+
+# Data directories
+termux-projects/data/
+termux-projects/logs/
+
+# Compiled files
+*.exe
+*.o
+*.so
+
+# Temporary files
+tmp/
+temp/
+
+# Package files
+*.tar.gz
+*.zip

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的手机网站</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 我的手机个人网站</h1>
+        <div class="card">
+            <h3>📱 关于这个网站</h3>
+            <p>这个网站完全运行在我的Android手机上！使用Termux和Python搭建。</p>
+        </div>
+        <div class="card">
+            <h3>🛠️ 技术栈</h3>
+            <ul>
+                <li>Termux - Android终端环境</li>
+                <li>Python HTTP服务器</li>
+                <li>HTML5 + CSS3</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>📊 系统信息</h3>
+            <p>服务器运行时间: <span id="uptime">计算中...</span></p>
+            <p>当前时间: <span id="currentTime"></span></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentTime').textContent = new Date().toLocaleString();
+        setTimeout(() => {
+            document.getElementById('uptime').textContent = '持续运行中';
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+{
+  "name": "termux-server-project",
+  "version": "1.0.0",
+  "description": "A complete server solution built with Termux on Android",
+  "main": "index.js",
+  "scripts": {
+    "start:sshd": "node termux-projects/system/start-sshd.js",
+    "start:web": "node termux-projects/system/start-web.js",
+    "start:health-check": "node termux-projects/system/health-check.js",
+    "start:service-monitor": "node termux-projects/system/service-monitor.js",
+    "start:wakelock": "node termux-projects/system/wakelock-manager.js",
+    "start:all": "pm2 start pm2.config.js",
+    "stop:all": "pm2 stop pm2.config.js",
+    "status": "pm2 status",
+    "logs": "pm2 logs"
+  },
+  "keywords": [
+    "termux",
+    "android",
+    "server",
+    "ssh",
+    "web-server"
+  ],
+  "author": "Termux Developer",
+  "license": "MIT",
+  "dependencies": {
+    "pm2": "^5.3.0"
+  },
+  "devDependencies": {
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
