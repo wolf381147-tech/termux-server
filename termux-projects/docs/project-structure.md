@@ -148,12 +148,15 @@ npm run start:wakelock
 # SSH服务管理
 ~/.shortcuts/service-ssh start --optimized
 ~/.shortcuts/service-ssh stop
+~/.shortcuts/service-ssh toggle
 ~/.shortcuts/service-ssh info
 
 # Web服务管理
 ~/.shortcuts/service-web start --type server
 ~/.shortcuts/service-web start --type manager --background
 ~/.shortcuts/service-web stop --type server
+~/.shortcuts/service-web toggle --type server
+~/.shortcuts/service-web info --type server
 
 # 系统状态快照工具
 ~/.shortcuts/tool-backup snapshot
@@ -167,16 +170,12 @@ npm run start:wakelock
 ```
 🚀 Termux 服务器项目
 ├── 🔐 SSH 服务管理
-│   ├── ▶️ 启动SSH服务
+│   ├── 🔁 切换SSH服务状态
 │   ├── ▶️ 启动优化SSH服务（防息屏断联）
-│   ├── ⏹️ 停止SSH服务
-│   ├── 📊 查看SSH状态
-│   └── ℹ️ SSH连接信息
+│   └── 📊 查看SSH状态和连接信息
 ├── 🌐 Web 服务管理
-│   ├── ▶️ 启动Web服务器
-│   ├── ⏹️ 停止Web服务器
-│   ├── 📊 查看Web状态
-│   └── ℹ️ Web连接信息
+│   ├── 🔁 切换Web服务器状态
+│   └── 📊 查看Web状态和连接信息
 ├── 💾 系统状态快照工具
 │   ├── 📸 创建系统状态快照
 │   ├── 📋 列出快照文件

@@ -21,6 +21,7 @@ show_help() {
     echo "命令:"
     echo "  start     启动SSH服务"
     echo "  stop      停止SSH服务"
+    echo "  toggle    切换SSH服务状态"
     echo "  status    查看SSH服务状态"
     echo "  config    配置SSH服务"
     echo "  info      显示连接信息"
@@ -35,6 +36,7 @@ show_help() {
     echo "  service-ssh start"
     echo "  service-ssh start --optimized"
     echo "  service-ssh stop"
+    echo "  service-ssh toggle"
     echo "  service-ssh info"
 }
 
@@ -125,6 +127,29 @@ show_info() {
         echo "   3. 输入上述SSH命令"
         echo "   4. 首次连接可能需要确认主机密钥"
         echo "   5. 输入Termux密码进行身份验证"
+    fi
+}
+
+# 切换SSH服务状态
+toggle_ssh() {
+    if pgrep sshd > /dev/null; then
+        echo -e "${BLUE}正在停止SSH服务...${NC}"
+        stop_ssh
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✅ SSH服务已停止${NC}"
+        else
+            echo -e "${RED}❌ 停止SSH服务失败${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${BLUE}正在启动SSH服务...${NC}"
+        start_ssh
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✅ SSH服务已启动${NC}"
+        else
+            echo -e "${RED}❌ 启动SSH服务失败${NC}"
+            exit 1
+        fi
     fi
 }
 

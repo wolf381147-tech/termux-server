@@ -22,6 +22,7 @@ show_help() {
     echo "命令:"
     echo "  start     启动Web服务"
     echo "  stop      停止Web服务"
+    echo "  toggle    切换Web服务状态"
     echo "  status    查看Web服务状态"
     echo "  info      显示连接信息"
     echo ""
@@ -37,6 +38,7 @@ show_help() {
     echo "  service-web start --type server"
     echo "  service-web start --type manager --background"
     echo "  service-web stop --type server"
+    echo "  service-web toggle --type server"
     echo "  service-web info"
 }
 
@@ -203,6 +205,81 @@ show_info() {
         echo "   3. 可以访问共享目录中的文件"
         echo "   4. 文件管理器提供更多文件操作功能"
     fi
+}
+
+# 切换Web服务状态
+toggle_web() {
+    local service_type=$1
+    
+    case $service_type in
+        server)
+            if pgrep -f "http.server" > /dev/null; then
+                echo -e "${BLUE}正在停止Web服务器...${NC}"
+                stop_web "server"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web服务器已停止${NC}"
+                else
+                    echo -e "${RED}❌ 停止Web服务器失败${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${BLUE}正在启动Web服务器...${NC}"
+                start_web "server"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web服务器已启动${NC}"
+                else
+                    echo -e "${RED}❌ 启动Web服务器失败${NC}"
+                    exit 1
+                fi
+            fi
+            ;;
+        manager)
+            if pgrep -f "web-file-manager.py" > /dev/null; then
+                echo -e "${BLUE}正在停止Web文件管理器...${NC}"
+                stop_web "manager"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web文件管理器已停止${NC}"
+                else
+                    echo -e "${RED}❌ 停止Web文件管理器失败${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${BLUE}正在启动Web文件管理器...${NC}"
+                start_web "manager"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web文件管理器已启动${NC}"
+                else
+                    echo -e "${RED}❌ 启动Web文件管理器失败${NC}"
+                    exit 1
+                fi
+            fi
+            ;;
+        gui)
+            if pgrep -f "web-gui/app.py" > /dev/null; then
+                echo -e "${BLUE}正在停止Web GUI...${NC}"
+                stop_web "gui"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web GUI已停止${NC}"
+                else
+                    echo -e "${RED}❌ 停止Web GUI失败${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${BLUE}正在启动Web GUI...${NC}"
+                start_web "gui"
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✅ Web GUI已启动${NC}"
+                else
+                    echo -e "${RED}❌ 启动Web GUI失败${NC}"
+                    exit 1
+                fi
+            fi
+            ;;
+        *)
+            echo -e "${RED}未知服务类型: $service_type${NC}"
+            exit 1
+            ;;
+    esac
 }
 
 # 主程序逻辑

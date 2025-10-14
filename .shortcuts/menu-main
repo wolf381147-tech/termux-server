@@ -32,11 +32,9 @@ show_ssh_menu() {
     echo "=========================================="
     echo "           🔐 SSH 服务管理"
     echo "=========================================="
-    echo "1. ▶️  启动SSH服务"
+    echo "1. 🔁 切换SSH服务状态"
     echo "2. ▶️  启动优化SSH服务（防息屏断联）"
-    echo "3. ⏹️  停止SSH服务"
-    echo "4. 📊 查看SSH状态"
-    echo "5. ℹ️  SSH连接信息"
+    echo "3. 📊 查看SSH状态和连接信息"
     echo "0. ↩️  返回主菜单"
     echo "=========================================="
 }
@@ -47,10 +45,8 @@ show_web_menu() {
     echo "=========================================="
     echo "           🌐 Web 服务管理"
     echo "=========================================="
-    echo "1. ▶️  启动Web服务器"
-    echo "2. ⏹️  停止Web服务器"
-    echo "3. 📊 查看Web状态"
-    echo "4. ℹ️  Web连接信息"
+    echo "1. 🔁 切换Web服务器状态"
+    echo "2. 📊 查看Web状态和连接信息"
     echo "0. ↩️  返回主菜单"
     echo "=========================================="
 }
@@ -79,9 +75,8 @@ handle_ssh_menu() {
         
         case $ssh_choice in
             1)
-                echo -e "${BLUE}启动SSH服务...${NC}"
-                ~/.shortcuts/service-ssh start
-                echo -e "${GREEN}✅ SSH服务启动完成${NC}"
+                echo -e "${BLUE}切换SSH服务状态...${NC}"
+                ~/.shortcuts/service-ssh toggle
                 read -p "按回车键继续..."
                 ;;
             2)
@@ -91,17 +86,8 @@ handle_ssh_menu() {
                 read -p "按回车键继续..."
                 ;;
             3)
-                echo -e "${BLUE}停止SSH服务...${NC}"
-                ~/.shortcuts/service-ssh stop
-                echo -e "${GREEN}✅ SSH服务已停止${NC}"
-                read -p "按回车键继续..."
-                ;;
-            4)
                 echo -e "${BLUE}检查SSH服务状态...${NC}"
                 ~/.shortcuts/service-ssh status
-                read -p "按回车键继续..."
-                ;;
-            5)
                 echo -e "${BLUE}显示SSH连接信息...${NC}"
                 ~/.shortcuts/service-ssh info --with-guide
                 read -p "按回车键继续..."
@@ -125,23 +111,13 @@ handle_web_menu() {
         
         case $web_choice in
             1)
-                echo -e "${BLUE}启动Web服务器...${NC}"
-                ~/.shortcuts/service-web start --type server
-                echo -e "${GREEN}✅ Web服务器启动完成${NC}"
+                echo -e "${BLUE}切换Web服务器状态...${NC}"
+                ~/.shortcuts/service-web toggle --type server
                 read -p "按回车键继续..."
                 ;;
             2)
-                echo -e "${BLUE}停止Web服务器...${NC}"
-                ~/.shortcuts/service-web stop --type server
-                echo -e "${GREEN}✅ Web服务器已停止${NC}"
-                read -p "按回车键继续..."
-                ;;
-            3)
                 echo -e "${BLUE}检查Web服务状态...${NC}"
                 ~/.shortcuts/service-web status --type server
-                read -p "按回车键继续..."
-                ;;
-            4)
                 echo -e "${BLUE}显示Web连接信息...${NC}"
                 ~/.shortcuts/service-web info --with-guide
                 read -p "按回车键继续..."
