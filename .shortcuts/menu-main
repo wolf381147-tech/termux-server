@@ -18,254 +18,381 @@ show_main_menu() {
     echo "=========================================="
     echo "           🚀 Termux 服务器项目"
     echo "=========================================="
-    echo "1. 🌐 SSH 服务管理"
-    echo "2. 🌐 Web 服务管理"
-    echo "3. 💾 备份工具"
-    echo "4. 📁 文件管理器"
-    echo "5. ⚙️  系统配置"
-    echo "6. 📊 系统状态"
-    echo "7. 🛠️  系统工具"
-    echo "8. 📚 帮助文档"
+    echo "1. 🌐 服务管理"
+    echo "2. 💾 备份工具"
+    echo "3. 📁 文件管理器"
+    echo "4. ⚙️  系统配置"
+    echo "5. 📊 系统状态"
+    echo "6. 🛠️  系统工具"
+    echo "7. 📚 帮助文档"
     echo "0. 🚪 退出"
     echo "=========================================="
 }
 
-# SSH服务管理菜单
-show_ssh_menu() {
+# 服务管理菜单
+show_service_menu() {
+    clear
+    echo "=========================================="
+    echo "           🌐 服务管理"
+    echo "=========================================="
+    echo "1. SSH 服务管理"
+    echo "2. Web 服务管理"
+    echo "3. 查看所有服务状态"
+    echo "4. 启动所有服务"
+    echo "5. 停止所有服务"
+    echo "0. 返回主菜单"
+    echo "=========================================="
+}
+
+# SSH服务管理
+manage_ssh_service() {
     clear
     echo "=========================================="
     echo "           🔐 SSH 服务管理"
     echo "=========================================="
     echo "1. 启动SSH服务"
-    echo "2. 启动优化SSH服务（防息屏断联）"
-    echo "3. 启动智能SSH模式"
-    echo "4. 停止SSH服务"
-    echo "5. 查看SSH状态"
-    echo "6. 显示连接信息"
-    echo "0. 返回主菜单"
+    echo "2. 停止SSH服务"
+    echo "3. 查看SSH状态"
+    echo "4. 显示连接信息"
+    echo "0. 返回服务管理"
     echo "=========================================="
+    
+    read -p "请选择操作 [0-4]: " choice
+    
+    case $choice in
+        1)
+            echo "启动SSH服务..."
+            ssh_start
+            read -p "按回车键继续..."
+            manage_ssh_service
+            ;;
+        2)
+            echo "停止SSH服务..."
+            ssh_stop
+            read -p "按回车键继续..."
+            manage_ssh_service
+            ;;
+        3)
+            echo "查看SSH状态..."
+            ssh_status
+            read -p "按回车键继续..."
+            manage_ssh_service
+            ;;
+        4)
+            echo "显示连接信息..."
+            ssh_info
+            read -p "按回车键继续..."
+            manage_ssh_service
+            ;;
+        0)
+            show_service_menu
+            ;;
+        *)
+            echo "无效选择"
+            read -p "按回车键继续..."
+            manage_ssh_service
+            ;;
+    esac
 }
 
-# Web服务管理菜单
-show_web_menu() {
+# Web服务管理
+manage_web_service() {
     clear
     echo "=========================================="
     echo "           🌐 Web 服务管理"
     echo "=========================================="
-    echo "1. 启动Web服务器"
-    echo "2. 启动Web文件管理器"
-    echo "3. 启动Web GUI"
-    echo "4. 停止Web服务"
-    echo "5. 查看Web服务状态"
-    echo "6. 显示连接信息"
-    echo "0. 返回主菜单"
+    echo "1. 启动Web服务"
+    echo "2. 停止Web服务"
+    echo "3. 查看Web状态"
+    echo "4. 显示连接信息"
+    echo "0. 返回服务管理"
     echo "=========================================="
+    
+    read -p "请选择操作 [0-4]: " choice
+    
+    case $choice in
+        1)
+            echo "启动Web服务..."
+            web_start
+            read -p "按回车键继续..."
+            manage_web_service
+            ;;
+        2)
+            echo "停止Web服务..."
+            web_stop
+            read -p "按回车键继续..."
+            manage_web_service
+            ;;
+        3)
+            echo "查看Web状态..."
+            web_status
+            read -p "按回车键继续..."
+            manage_web_service
+            ;;
+        4)
+            echo "显示连接信息..."
+            web_info
+            read -p "按回车键继续..."
+            manage_web_service
+            ;;
+        0)
+            show_service_menu
+            ;;
+        *)
+            echo "无效选择"
+            read -p "按回车键继续..."
+            manage_web_service
+            ;;
+    esac
 }
 
-# 备份工具菜单
-show_backup_menu() {
+# SSH服务操作函数
+ssh_start() {
+    # 检查是否已运行
+    if pgrep -f "sshd" > /dev/null; then
+        echo -e "${YELLOW}SSH服务已在运行${NC}"
+        return
+    fi
+    
+    # 启动SSH服务
+    sshd
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}SSH服务启动成功${NC}"
+    else
+        echo -e "${RED}SSH服务启动失败${NC}"
+    fi
+}
+
+ssh_stop() {
+    # 停止SSH服务
+    pkill sshd > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}SSH服务已停止${NC}"
+    else
+        echo -e "${YELLOW}未找到运行中的SSH服务${NC}"
+    fi
+}
+
+ssh_status() {
+    if pgrep -f "sshd" > /dev/null; then
+        echo -e "${GREEN}SSH服务正在运行${NC}"
+    else
+        echo -e "${RED}SSH服务未运行${NC}"
+    fi
+}
+
+ssh_info() {
+    local local_ip=$(ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    local public_ip=$(curl -s https://api.ipify.org 2>/dev/null || echo "无法获取")
+    
+    echo "SSH连接信息:"
+    echo "  用户名: $(whoami)"
+    echo "  端口: 8022"
+    echo "  本地IP: ${local_ip:-未连接}"
+    echo "  公网IP: ${public_ip}"
+    echo ""
+    echo "连接命令:"
+    echo "  ssh -p 8022 $(whoami)@${local_ip:-localhost}"
+}
+
+# Web服务操作函数
+web_start() {
+    local web_dir="/data/data/com.termux/files/home/storage/shared/termux-projects"
+    local port=8000
+    
+    # 检查是否已运行
+    if pgrep -f "python.*http.server.*${port}" > /dev/null; then
+        echo -e "${YELLOW}Web服务已在运行${NC}"
+        return
+    fi
+    
+    # 检查目录是否存在
+    if [ ! -d "$web_dir" ]; then
+        echo -e "${YELLOW}Web目录不存在，创建目录${NC}"
+        mkdir -p "$web_dir"
+    fi
+    
+    # 启动Web服务
+    cd "$web_dir" && python -m http.server $port > /dev/null 2>&1 &
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Web服务启动成功${NC}"
+        echo "访问地址: http://localhost:$port"
+    else
+        echo -e "${RED}Web服务启动失败${NC}"
+    fi
+}
+
+web_stop() {
+    # 停止Web服务
+    pkill -f "python.*http.server" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Web服务已停止${NC}"
+    else
+        echo -e "${YELLOW}未找到运行中的Web服务${NC}"
+    fi
+}
+
+web_status() {
+    local port=8000
+    if pgrep -f "python.*http.server.*${port}" > /dev/null; then
+        echo -e "${GREEN}Web服务正在运行${NC}"
+    else
+        echo -e "${RED}Web服务未运行${NC}"
+    fi
+}
+
+web_info() {
+    local local_ip=$(ip addr show wlan0 2>/dev/null | grep "inet " | awk '{print $2}' | cut -d/ -f1)
+    local public_ip=$(curl -s https://api.ipify.org 2>/dev/null || echo "无法获取")
+    local port=8000
+    
+    echo "Web服务信息:"
+    echo "  端口: $port"
+    echo "  本地IP: ${local_ip:-未连接}"
+    echo "  公网IP: ${public_ip}"
+    echo ""
+    echo "访问地址:"
+    echo "  http://${local_ip:-localhost}:$port"
+}
+
+# 查看所有服务状态
+view_all_services() {
     clear
     echo "=========================================="
-    echo "           💾 备份工具"
+    echo "           📊 所有服务状态"
     echo "=========================================="
-    echo "1. 项目备份"
-    echo "2. 系统备份"
-    echo "3. 完整备份"
-    echo "4. 终极备份"
-    echo "5. 列出备份文件"
-    echo "6. 清理旧备份"
-    echo "0. 返回主菜单"
+    
+    echo "SSH服务:"
+    ssh_status
+    
+    echo ""
+    echo "Web服务:"
+    web_status
+    
+    echo ""
+    read -p "按回车键返回..."
+}
+
+# 启动所有服务
+start_all_services() {
+    clear
     echo "=========================================="
+    echo "           🚀 启动所有服务"
+    echo "=========================================="
+    
+    echo "启动SSH服务..."
+    ssh_start
+    
+    echo ""
+    echo "启动Web服务..."
+    web_start
+    
+    echo ""
+    read -p "按回车键返回..."
 }
 
-# 处理SSH菜单选项
-handle_ssh_menu() {
+# 停止所有服务
+stop_all_services() {
+    clear
+    echo "=========================================="
+    echo "           🛑 停止所有服务"
+    echo "=========================================="
+    
+    echo "停止SSH服务..."
+    ssh_stop
+    
+    echo ""
+    echo "停止Web服务..."
+    web_stop
+    
+    echo ""
+    read -p "按回车键返回..."
+}
+
+# 服务管理主循环
+service_menu_loop() {
     while true; do
-        show_ssh_menu
-        read -p "请选择: " ssh_choice
+        show_service_menu
+        read -p "请选择操作 [0-5]: " choice
         
-        case $ssh_choice in
+        case $choice in
             1)
-                ~/.shortcuts/service-ssh start
-                read -p "按回车键继续..."
+                manage_ssh_service
                 ;;
             2)
-                ~/.shortcuts/service-ssh start --optimized
-                read -p "按回车键继续..."
+                manage_web_service
                 ;;
             3)
-                ~/.shortcuts/service-ssh start --smart-mode
+                view_all_services
                 ;;
             4)
-                ~/.shortcuts/service-ssh stop
-                read -p "按回车键继续..."
+                start_all_services
                 ;;
             5)
-                ~/.shortcuts/service-ssh status
-                read -p "按回车键继续..."
-                ;;
-            6)
-                ~/.shortcuts/service-ssh info --with-guide
-                read -p "按回车键继续..."
+                stop_all_services
                 ;;
             0)
-                return
+                break
                 ;;
             *)
-                echo -e "${RED}无效选择，请重新输入${NC}"
-                sleep 1
+                echo "无效选择"
+                read -p "按回车键继续..."
                 ;;
         esac
     done
 }
 
-# 处理Web菜单选项
-handle_web_menu() {
-    while true; do
-        show_web_menu
-        read -p "请选择: " web_choice
-        
-        case $web_choice in
-            1)
-                ~/.shortcuts/service-web start --type server
-                read -p "按回车键继续..."
-                ;;
-            2)
-                ~/.shortcuts/service-web start --type manager --background
-                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
-                read -p "按回车键继续..."
-                ;;
-            3)
-                ~/.shortcuts/service-web start --type gui
-                read -p "按回车键继续..."
-                ;;
-            4)
-                ~/.shortcuts/service-web stop --type server
-                ~/.shortcuts/service-web stop --type manager
-                ~/.shortcuts/service-web stop --type gui
-                echo -e "${GREEN}所有Web服务已停止${NC}"
-                read -p "按回车键继续..."
-                ;;
-            5)
-                ~/.shortcuts/service-web status --type server
-                ~/.shortcuts/service-web status --type manager
-                ~/.shortcuts/service-web status --type gui
-                read -p "按回车键继续..."
-                ;;
-            6)
-                ~/.shortcuts/service-web info --with-guide
-                read -p "按回车键继续..."
-                ;;
-            0)
-                return
-                ;;
-            *)
-                echo -e "${RED}无效选择，请重新输入${NC}"
-                sleep 1
-                ;;
-        esac
-    done
-}
-
-# 处理备份菜单选项
-handle_backup_menu() {
-    while true; do
-        show_backup_menu
-        read -p "请选择: " backup_choice
-        
-        case $backup_choice in
-            1)
-                ~/.shortcuts/tool-backup backup --type project
-                read -p "按回车键继续..."
-                ;;
-            2)
-                ~/.shortcuts/tool-backup backup --type system
-                read -p "按回车键继续..."
-                ;;
-            3)
-                ~/.shortcuts/tool-backup backup --type full
-                read -p "按回车键继续..."
-                ;;
-            4)
-                ~/.shortcuts/tool-backup backup --type ultimate
-                read -p "按回车键继续..."
-                ;;
-            5)
-                ~/.shortcuts/tool-backup list
-                read -p "按回车键继续..."
-                ;;
-            6)
-                ~/.shortcuts/tool-backup clean
-                read -p "按回车键继续..."
-                ;;
-            0)
-                return
-                ;;
-            *)
-                echo -e "${RED}无效选择，请重新输入${NC}"
-                sleep 1
-                ;;
-        esac
-    done
-}
-
-# 主程序循环
-main() {
+# 主菜单循环
+main_menu_loop() {
     while true; do
         show_main_menu
-        read -p "请选择: " main_choice
+        read -p "请选择操作 [0-7]: " choice
         
-        case $main_choice in
+        case $choice in
             1)
-                handle_ssh_menu
+                service_menu_loop
                 ;;
             2)
-                handle_web_menu
+                echo "备份工具功能..."
+                # 这里调用备份工具
+                read -p "按回车键继续..."
                 ;;
             3)
-                handle_backup_menu
+                echo "文件管理器功能..."
+                # 这里调用文件管理器
+                read -p "按回车键继续..."
                 ;;
             4)
-                echo -e "${YELLOW}启动文件管理器...${NC}"
-                ~/.shortcuts/service-web start --type manager --background
-                echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
+                echo "系统配置功能..."
+                # 这里调用系统配置
                 read -p "按回车键继续..."
                 ;;
             5)
-                echo -e "${YELLOW}系统配置功能将在后续版本中实现${NC}"
+                echo "系统状态功能..."
+                # 这里调用系统状态
                 read -p "按回车键继续..."
                 ;;
             6)
-                echo -e "${YELLOW}显示系统状态...${NC}"
-                if command -v neofetch >/dev/null 2>&1; then
-                    neofetch
-                else
-                    echo "系统信息:"
-                    uname -a
-                    echo "用户: $(whoami)"
-                    echo "当前目录: $(pwd)"
-                fi
+                echo "系统工具功能..."
+                # 这里调用系统工具
                 read -p "按回车键继续..."
                 ;;
             7)
-                echo -e "${YELLOW}系统工具功能将在后续版本中实现${NC}"
-                read -p "按回车键继续..."
-                ;;
-            8)
-                echo -e "${YELLOW}帮助文档功能将在后续版本中实现${NC}"
+                echo "帮助文档功能..."
+                # 这里调用帮助文档
                 read -p "按回车键继续..."
                 ;;
             0)
-                echo -e "${GREEN}感谢使用 Termux 服务器项目！${NC}"
+                echo "退出程序"
                 exit 0
                 ;;
             *)
-                echo -e "${RED}无效选择，请重新输入${NC}"
-                sleep 1
+                echo "无效选择"
+                read -p "按回车键继续..."
                 ;;
         esac
     done
 }
 
-# 执行主程序
-main
+# 启动主菜单
+main_menu_loop

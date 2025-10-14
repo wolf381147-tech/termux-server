@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 统一SSH服务管理器
-# 支持启动、停止、状态查看、配置等功能
+# SSH服务管理器
+# 提供基础的SSH服务管理功能
 
 # 默认配置
 SSH_PORT=8022
@@ -22,18 +22,13 @@ show_help() {
     echo "  start     启动SSH服务"
     echo "  stop      停止SSH服务"
     echo "  status    查看SSH服务状态"
-    echo "  config    配置SSH服务"
     echo "  info      显示连接信息"
     echo ""
     echo "选项:"
-    echo "  -o, --optimized     启用优化模式（获取唤醒锁）"
-    echo "  -g, --with-guide    显示连接指南"
-    echo "  -s, --smart-mode    启用智能模式"
     echo "  -h, --help          显示此帮助信息"
     echo ""
     echo "示例:"
     echo "  service-ssh start"
-    echo "  service-ssh start --optimized"
     echo "  service-ssh stop"
     echo "  service-ssh info"
 }
@@ -50,145 +45,68 @@ get_public_ip() {
 
 # 启动SSH服务
 start_ssh() {
-    local optimized=$1
-    local smart_mode=$2
-    
-    echo -e "${BLUE}启动SSH服务...${NC}"
-    
-    # 如果启用优化模式，获取唤醒锁
-    if [ "$optimized" = "true" ] || [ "$smart_mode" = "true" ]; then
-        echo -e "${YELLOW}获取唤醒锁防止息屏断联...${NC}"
-        termux-wake-lock
+    # 检查是否已运行
+    if pgrep -f "sshd" > /dev/null; then
+        echo -e "${YELLOW}SSH服务已在运行${NC}"
+        return 1
     fi
     
     # 启动SSH服务
     sshd
-    
-    # 如果启用智能模式，保持运行
-    if [ "$smart_mode" = "true" ]; then
-        echo -e "${GREEN}SSH服务已启动（智能模式）${NC}"
-        echo "按 Ctrl+C 停止服务"
-        trap "stop_ssh; exit 0" INT
-        while true; do
-            sleep 60
-        done
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}SSH服务启动成功${NC}"
+        return 0
     else
-        echo -e "${GREEN}SSH服务已启动${NC}"
+        echo -e "${RED}SSH服务启动失败${NC}"
+        return 1
     fi
 }
 
 # 停止SSH服务
 stop_ssh() {
-    echo -e "${BLUE}停止SSH服务...${NC}"
-    pkill sshd 2>/dev/null
-    termux-wake-unlock 2>/dev/null
-    echo -e "${GREEN}SSH服务已停止${NC}"
+    # 停止SSH服务
+    pkill sshd > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}SSH服务已停止${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}未找到运行中的SSH服务${NC}"
+        return 1
+    fi
 }
 
-# 查看SSH服务状态
+# 查看SSH状态
 status_ssh() {
-    if pgrep sshd > /dev/null; then
+    if pgrep -f "sshd" > /dev/null; then
         echo -e "${GREEN}SSH服务正在运行${NC}"
+        return 0
     else
         echo -e "${RED}SSH服务未运行${NC}"
+        return 1
     fi
 }
 
 # 显示连接信息
 show_info() {
-    local with_guide=$1
-    
     local local_ip=$(get_local_ip)
     local public_ip=$(get_public_ip)
     
-    if [ -z "$local_ip" ]; then
-        local_ip="无法获取本地IP，请检查WiFi连接"
-    fi
-    
-    echo "=========================================="
-    echo "           🔐 SSH连接信息"
-    echo "=========================================="
-    echo "📱 本地IP: $local_ip"
-    echo "🌐 公共IP: $public_ip"
-    echo "🔌 端口: $SSH_PORT"
-    echo "👤 用户名: $SSH_USER"
-    echo "=========================================="
-    echo "💻 从电脑连接:"
-    echo "   ssh $SSH_USER@$local_ip -p $SSH_PORT"
-    echo "=========================================="
-    
-    if [ "$with_guide" = "true" ]; then
-        echo ""
-        echo "💡 连接指南:"
-        echo "   1. 确保手机和电脑在同一WiFi网络"
-        echo "   2. 在电脑上打开终端或SSH客户端"
-        echo "   3. 输入上述SSH命令"
-        echo "   4. 首次连接可能需要确认主机密钥"
-        echo "   5. 输入Termux密码进行身份验证"
-    fi
+    echo "SSH连接信息:"
+    echo "  用户名: $SSH_USER"
+    echo "  端口: $SSH_PORT"
+    echo "  本地IP: ${local_ip:-未连接}"
+    echo "  公网IP: ${public_ip}"
+    echo ""
+    echo "连接命令:"
+    echo "  ssh -p $SSH_PORT $SSH_USER@${local_ip:-localhost}"
 }
 
-# 主程序逻辑
+# 主程序入口
 main() {
-    local command=""
-    local optimized=false
-    local with_guide=false
-    local smart_mode=false
-    
     # 解析命令行参数
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            start)
-                command="start"
-                shift
-                ;;
-            stop)
-                command="stop"
-                shift
-                ;;
-            status)
-                command="status"
-                shift
-                ;;
-            info)
-                command="info"
-                shift
-                ;;
-            config)
-                command="config"
-                shift
-                ;;
-            -o|--optimized)
-                optimized=true
-                shift
-                ;;
-            -g|--with-guide)
-                with_guide=true
-                shift
-                ;;
-            -s|--smart-mode)
-                smart_mode=true
-                shift
-                ;;
-            -h|--help)
-                show_help
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}未知参数: $1${NC}"
-                show_help
-                exit 1
-                ;;
-        esac
-    done
-    
-    # 执行相应命令
-    case $command in
+    case "$1" in
         start)
-            start_ssh $optimized $smart_mode
-            if [ "$smart_mode" != "true" ]; then
-                show_info $with_guide
-            fi
+            start_ssh
             ;;
         stop)
             stop_ssh
@@ -197,15 +115,14 @@ main() {
             status_ssh
             ;;
         info)
-            show_info $with_guide
+            show_info
             ;;
-        config)
-            echo "配置功能将在后续版本中实现"
+        -h|--help)
+            show_help
             ;;
         *)
-            echo -e "${RED}请指定有效命令${NC}"
+            # 如果没有参数，显示帮助信息
             show_help
-            exit 1
             ;;
     esac
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 统一Web服务管理器
-# 支持Web服务器、文件管理器、Web GUI等功能
+# Web服务管理器
+# 提供基础的Web服务管理功能
 
 # 默认配置
 WEB_PORT=8000
@@ -26,17 +26,11 @@ show_help() {
     echo "  info      显示连接信息"
     echo ""
     echo "选项:"
-    echo "  -t, --type TYPE         服务类型 (server|manager|gui)"
-    echo "  -d, --dir DIRECTORY     Web目录"
-    echo "  -p, --port PORT         端口号"
-    echo "  -b, --background        后台运行"
-    echo "  -g, --with-guide        显示使用指南"
     echo "  -h, --help              显示此帮助信息"
     echo ""
     echo "示例:"
-    echo "  service-web start --type server"
-    echo "  service-web start --type manager --background"
-    echo "  service-web stop --type server"
+    echo "  service-web start"
+    echo "  service-web stop"
     echo "  service-web info"
 }
 
@@ -52,240 +46,90 @@ get_public_ip() {
 
 # 启动Web服务
 start_web() {
-    local service_type=$1
-    local background=$2
-    local port=$3
-    local directory=$4
-    
-    # 设置默认值
-    if [ -z "$port" ]; then
-        port=$WEB_PORT
+    # 检查是否已运行
+    if pgrep -f "python.*http.server.*${WEB_PORT}" > /dev/null; then
+        echo -e "${YELLOW}Web服务已在运行${NC}"
+        return 1
     fi
     
-    if [ -z "$directory" ]; then
-        directory=$WEB_DIR
+    # 检查目录是否存在
+    if [ ! -d "$WEB_DIR" ]; then
+        echo -e "${YELLOW}Web目录不存在，创建目录${NC}"
+        mkdir -p "$WEB_DIR"
     fi
     
-    echo -e "${BLUE}启动Web服务 ($service_type)...${NC}"
-    
-    case $service_type in
-        server)
-            # 启动Python Web服务器
-            if [ "$background" = "true" ]; then
-                cd "$directory" && python -m http.server $port > /dev/null 2>&1 &
-                echo -e "${GREEN}Web服务器已在后台启动${NC}"
-            else
-                echo -e "${YELLOW}在目录 $directory 启动Web服务器，端口 $port${NC}"
-                cd "$directory" && python -m http.server $port
-            fi
-            ;;
-        manager)
-            # 启动Web文件管理器
-            if [ "$background" = "true" ]; then
-                # 杀死可能存在的旧进程
-                pkill -f "web-file-manager.py" 2>/dev/null
-                
-                # 启动Web文件管理器，并保持运行
-                while true; do
-                    python /data/data/com.termux/files/home/web-file-manager.py > /dev/null 2>&1 &
-                    echo -e "${GREEN}Web文件管理器已在后台启动${NC}"
-                    break
-                done
-            else
-                python /data/data/com.termux/files/home/web-file-manager.py
-            fi
-            ;;
-        gui)
-            # 启动Web GUI
-            echo -e "${YELLOW}启动Web GUI...${NC}"
-            python /data/data/com.termux/files/home/web-gui/app.py
-            ;;
-        *)
-            echo -e "${RED}未知服务类型: $service_type${NC}"
-            return 1
-            ;;
-    esac
+    # 启动Web服务
+    cd "$WEB_DIR" && python -m http.server $WEB_PORT > /dev/null 2>&1 &
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Web服务启动成功${NC}"
+        echo "访问地址: http://localhost:$WEB_PORT"
+        return 0
+    else
+        echo -e "${RED}Web服务启动失败${NC}"
+        return 1
+    fi
 }
 
 # 停止Web服务
 stop_web() {
-    local service_type=$1
-    
-    echo -e "${BLUE}停止Web服务 ($service_type)...${NC}"
-    
-    case $service_type in
-        server)
-            pkill -f "http.server" 2>/dev/null
-            echo -e "${GREEN}Web服务器已停止${NC}"
-            ;;
-        manager)
-            pkill -f "web-file-manager.py" 2>/dev/null
-            echo -e "${GREEN}Web文件管理器已停止${NC}"
-            ;;
-        gui)
-            pkill -f "web-gui/app.py" 2>/dev/null
-            echo -e "${GREEN}Web GUI已停止${NC}"
-            ;;
-        *)
-            echo -e "${RED}未知服务类型: $service_type${NC}"
-            return 1
-            ;;
-    esac
+    # 停止Web服务
+    pkill -f "python.*http.server" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Web服务已停止${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}未找到运行中的Web服务${NC}"
+        return 1
+    fi
 }
 
-# 查看Web服务状态
+# 查看Web状态
 status_web() {
-    local service_type=$1
-    
-    case $service_type in
-        server)
-            if pgrep -f "http.server" > /dev/null; then
-                echo -e "${GREEN}Web服务器正在运行${NC}"
-            else
-                echo -e "${RED}Web服务器未运行${NC}"
-            fi
-            ;;
-        manager)
-            if pgrep -f "web-file-manager.py" > /dev/null; then
-                echo -e "${GREEN}Web文件管理器正在运行${NC}"
-            else
-                echo -e "${RED}Web文件管理器未运行${NC}"
-            fi
-            ;;
-        gui)
-            if pgrep -f "web-gui/app.py" > /dev/null; then
-                echo -e "${GREEN}Web GUI正在运行${NC}"
-            else
-                echo -e "${RED}Web GUI未运行${NC}"
-            fi
-            ;;
-        *)
-            echo -e "${RED}未知服务类型: $service_type${NC}"
-            return 1
-            ;;
-    esac
+    if pgrep -f "python.*http.server.*${WEB_PORT}" > /dev/null; then
+        echo -e "${GREEN}Web服务正在运行${NC}"
+        return 0
+    else
+        echo -e "${RED}Web服务未运行${NC}"
+        return 1
+    fi
 }
 
 # 显示连接信息
 show_info() {
-    local with_guide=$1
-    local port=$2
-    
-    # 设置默认端口
-    if [ -z "$port" ]; then
-        port=$WEB_PORT
-    fi
-    
     local local_ip=$(get_local_ip)
     local public_ip=$(get_public_ip)
     
-    if [ -z "$local_ip" ]; then
-        local_ip="无法获取本地IP，请检查WiFi连接"
-    fi
-    
-    echo "=========================================="
-    echo "           🌐 Web服务连接信息"
-    echo "=========================================="
-    echo "📱 本地IP: $local_ip"
-    echo "🌐 公共IP: $public_ip"
-    echo "🔌 端口: $port"
-    echo "📂 目录: $WEB_DIR"
-    echo "=========================================="
-    echo "💻 访问地址:"
-    echo "   http://$local_ip:$port"
-    echo "=========================================="
-    
-    if [ "$with_guide" = "true" ]; then
-        echo ""
-        echo "💡 使用指南:"
-        echo "   1. 确保手机和电脑在同一WiFi网络"
-        echo "   2. 在电脑浏览器中打开上述地址"
-        echo "   3. 可以访问共享目录中的文件"
-        echo "   4. 文件管理器提供更多文件操作功能"
-    fi
+    echo "Web服务信息:"
+    echo "  端口: $WEB_PORT"
+    echo "  本地IP: ${local_ip:-未连接}"
+    echo "  公网IP: ${public_ip}"
+    echo ""
+    echo "访问地址:"
+    echo "  http://${local_ip:-localhost}:$WEB_PORT"
 }
 
-# 主程序逻辑
+# 主程序入口
 main() {
-    local command=""
-    local service_type="server"
-    local background=false
-    local port=""
-    local directory=""
-    local with_guide=false
-    
     # 解析命令行参数
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            start)
-                command="start"
-                shift
-                ;;
-            stop)
-                command="stop"
-                shift
-                ;;
-            status)
-                command="status"
-                shift
-                ;;
-            info)
-                command="info"
-                shift
-                ;;
-            -t|--type)
-                service_type="$2"
-                shift 2
-                ;;
-            -d|--dir)
-                directory="$2"
-                shift 2
-                ;;
-            -p|--port)
-                port="$2"
-                shift 2
-                ;;
-            -b|--background)
-                background=true
-                shift
-                ;;
-            -g|--with-guide)
-                with_guide=true
-                shift
-                ;;
-            -h|--help)
-                show_help
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}未知参数: $1${NC}"
-                show_help
-                exit 1
-                ;;
-        esac
-    done
-    
-    # 执行相应命令
-    case $command in
+    case "$1" in
         start)
-            start_web $service_type $background $port $directory
-            if [ "$background" != "true" ]; then
-                show_info $with_guide $port
-            fi
+            start_web
             ;;
         stop)
-            stop_web $service_type
+            stop_web
             ;;
         status)
-            status_web $service_type
+            status_web
             ;;
         info)
-            show_info $with_guide $port
+            show_info
+            ;;
+        -h|--help)
+            show_help
             ;;
         *)
-            echo -e "${RED}请指定有效命令${NC}"
+            # 如果没有参数，显示帮助信息
             show_help
-            exit 1
             ;;
     esac
 }
