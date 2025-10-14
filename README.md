@@ -9,6 +9,7 @@
 
 - 🔐 SSH 服务管理 - 安全远程访问
 - 🌐 Web 服务器托管 - 静态网站服务
+- 💻 VS Code Server - 浏览器中的完整VS Code环境
 - 🏥 系统健康检查 - 服务可用性监控
 - 🛡️ 服务监控与自动恢复 - 保证服务持续运行
 - 🔋 唤醒锁管理 - 防止设备休眠导致服务中断
@@ -36,18 +37,22 @@
 ### 2. Web 服务器 (`start-web.js`)
 启动 Python HTTP 服务器托管静态网站和监控面板。
 
-### 3. 健康检查 (`health-check.js`)
+### 3. VS Code Server (`start-vscode.js`)
+启动 code-server 服务，通过浏览器访问完整的 VS Code 环境，方便项目开发。
+
+### 4. 健康检查 (`health-check.js`)
 定期检查关键服务的可用性：
 - SSH 服务 (端口 8022)
 - Web 服务 (端口 8000)
+- VS Code Server (端口 8080)
 
-### 4. 服务监控 (`service-monitor.js`)
+### 5. 服务监控 (`service-monitor.js`)
 监控 PM2 管理的服务并在服务停止时自动重启。
 
-### 5. 唤醒锁管理 (`wakelock-manager.js`)
+### 6. 唤醒锁管理 (`wakelock-manager.js`)
 管理设备唤醒锁，防止 CPU 进入休眠状态。
 
-### 6. 统一监控面板 (`my-website/index.html`)
+### 7. 统一监控面板 (`my-website/index.html`)
 通过浏览器访问的实时服务器监控面板，提供系统状态、服务信息和日志查看功能。
 
 ## 安装说明
@@ -97,6 +102,7 @@ npm run logs
 # 单独启动某个服务（开发环境）
 npm run dev:sshd
 npm run dev:web
+npm run dev:vscode
 npm run dev:health-check
 npm run dev:service-monitor
 npm run dev:wakelock
@@ -115,6 +121,29 @@ Termux 提供了图形化快捷菜单，可以通过 Termux 的通知栏快速�
 - 🖥️ 服务器监控面板
 - 💾 系统状态快照工具
 - 🚪 退出菜单
+
+## VS Code Server 使用说明
+
+项目集成了 VS Code Server，允许你通过浏览器访问完整的 VS Code 环境，方便开发和调试项目。
+
+### 启动 VS Code Server
+```bash
+npm run start:vscode
+```
+
+### 访问 VS Code
+启动服务后，可以通过以下地址访问 VS Code：
+```
+http://[设备IP地址]:8080
+```
+
+例如：
+```
+http://192.168.1.100:8080
+```
+
+### 安全说明
+默认情况下，VS Code Server 配置为无需认证即可访问，这在本地开发环境中很方便，但在公共网络中可能存在安全风险。建议在生产环境中通过SSH隧道访问。
 
 ## 配置管理
 

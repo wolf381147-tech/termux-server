@@ -9,6 +9,7 @@ termux-server-suite/
 ├── system/              # 核心系统服务
 │   ├── start-sshd.js      # SSH服务管理
 │   ├── start-web.js       # Web服务器管理
+│   ├── start-vscode.js    # VS Code Server管理
 │   ├── health-check.js    # 健康检查服务
 │   ├── service-monitor.js # 服务监控
 │   ├── wakelock-manager.js# 唤醒锁管理
@@ -30,6 +31,7 @@ termux-server-suite/
 核心系统服务模块，包含所有基础服务的实现：
 - SSH服务管理
 - Web服务器管理
+- VS Code Server管理
 - 健康检查服务
 - 服务监控
 - 唤醒锁管理
@@ -53,6 +55,7 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 - **Node.js** - 服务运行时环境
 - **PM2** - 生产环境进程管理器
 - **Nodemon** - 开发环境自动重启工具
+- **code-server** - VS Code Server，用于在浏览器中运行VS Code
 
 ### 依赖管理
 - **npm** - 包管理器
@@ -124,7 +127,8 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
   healthCheck: {
     checks: [
       { name: 'SSH', port: 8022, type: 'tcp' },
-      { name: 'Web', port: 8000, type: 'http' }
+      { name: 'Web', port: 8000, type: 'http' },
+      { name: 'VSCode', port: 8080, type: 'http' }
     ],
     checkInterval: 30000, // 30秒检查一次
     timeout: 5000 // 连接超时时间
@@ -132,7 +136,7 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 
   // 服务监控配置
   serviceMonitor: {
-    services: ['sshd', 'webserver'],
+    services: ['sshd', 'webserver', 'vscode'],
     checkInterval: 60000, // 1分钟检查一次
     maxRetries: 3 // 最大重启重试次数
   },
@@ -164,6 +168,69 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 - service-ssh - SSH服务统一管理器
 - service-web - Web服务统一管理器
 - tool-backup - 系统状态快照工具
+
+## VS Code Server 服务
+
+为了方便开发和调试，项目集成了 VS Code Server 服务，允许你通过浏览器访问完整的 VS Code 环境。
+
+### 功能特点
+
+1. **浏览器访问** - 通过浏览器直接访问 VS Code，无需本地安装
+2. **完整功能** - 支持 VS Code 的大部分功能，包括扩展、调试等
+3. **项目集成** - 直接访问和编辑项目文件
+4. **无需认证** - 默认配置下无需密码即可访问（生产环境请修改配置）
+
+### 使用方法
+
+#### 启动服务
+```bash
+npm run start:vscode
+```
+
+#### 停止服务
+```bash
+# 在另一个终端中执行
+pkill -f "code-server.*--port 8080"
+```
+
+#### 通过PM2管理
+```bash
+# 启动所有服务（包括VS Code Server）
+npm run start:all
+
+# 查看服务状态
+npm run status
+
+# 停止所有服务
+npm run stop:all
+```
+
+### 访问方式
+
+启动服务后，可以通过以下地址访问 VS Code：
+```
+http://[设备IP地址]:8080
+```
+
+例如：
+```
+http://192.168.1.100:8080
+```
+
+### 安全说明
+
+默认情况下，VS Code Server 配置为无需认证即可访问，这在本地开发环境中很方便，但在公共网络中可能存在安全风险。建议在生产环境中采取以下措施：
+
+1. 启用密码认证：
+   ```bash
+   code-server --port 8080 --host 0.0.0.0 --auth password
+   ```
+
+2. 通过SSH隧道访问：
+   ```bash
+   ssh -L 8080:localhost:8080 user@your-device-ip
+   ```
+   然后在本地浏览器中访问 `http://localhost:8080`
 
 ## 安全措施
 
@@ -201,6 +268,7 @@ Termux快捷脚本目录，包含统一的服务管理脚本：
 
 1. **SSH服务**：默认端口 8022
 2. **Web服务**：默认端口 8000
+3. **VS Code Server**：默认端口 8080
 
 #### 防火墙建议
 
@@ -294,6 +362,7 @@ npm run monit
 ```bash
 npm run dev:sshd
 npm run dev:web
+npm run dev:vscode
 npm run dev:health-check
 npm run dev:service-monitor
 npm run dev:wakelock
@@ -303,6 +372,7 @@ npm run dev:wakelock
 ```bash
 npm run start:sshd
 npm run start:web
+npm run start:vscode
 npm run start:health-check
 npm run start:service-monitor
 npm run start:wakelock

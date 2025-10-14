@@ -26,7 +26,8 @@ module.exports = {
   healthCheck: {
     checks: [
       { name: 'SSH', port: 8022, type: 'tcp' },
-      { name: 'Web', port: 8000, type: 'http' }
+      { name: 'Web', port: 8000, type: 'http' },
+      { name: 'VSCode', port: 8080, type: 'http' }
     ],
     checkInterval: 30000, // 30秒检查一次
     timeout: 5000 // 连接超时时间
@@ -34,7 +35,7 @@ module.exports = {
 
   // 服务监控配置
   serviceMonitor: {
-    services: ['sshd', 'webserver'],
+    services: ['sshd', 'webserver', 'vscode'],
     checkInterval: 60000, // 1分钟检查一次
     maxRetries: 3 // 最大重启重试次数
   },

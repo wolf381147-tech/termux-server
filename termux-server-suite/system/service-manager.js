@@ -47,7 +47,7 @@ class ServiceManager {
         // 检查是否包含禁止的命令
         for (const forbidden of forbiddenCommands) {
             if (command.includes(forbidden)) {
-                return false;
+              return false;
             }
         }
         

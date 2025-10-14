@@ -5,6 +5,7 @@
   "scripts": {
     "start:sshd": "node termux-server-suite/system/start-sshd.js",
     "start:web": "node termux-server-suite/system/start-web.js",
+    "start:vscode": "node termux-server-suite/system/start-vscode.js",
     "start:health-check": "node termux-server-suite/system/health-check.js",
     "start:service-monitor": "node termux-server-suite/system/service-monitor.js",
     "start:wakelock": "node termux-server-suite/system/wakelock-manager.js",
@@ -16,6 +17,7 @@
     "monit": "pm2 monit",
     "dev:sshd": "nodemon termux-server-suite/system/start-sshd.js",
     "dev:web": "nodemon termux-server-suite/system/start-web.js",
+    "dev:vscode": "nodemon termux-server-suite/system/start-vscode.js",
     "dev:health-check": "nodemon termux-server-suite/system/health-check.js",
     "dev:service-monitor": "nodemon termux-server-suite/system/service-monitor.js",
     "dev:wakelock": "nodemon termux-server-suite/system/wakelock-manager.js"
