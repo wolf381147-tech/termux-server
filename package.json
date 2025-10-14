@@ -1,6 +1,6 @@
 {
   "name": "termux-server-suite",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A complete server solution built with Termux on Android",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,8 @@
     "start:wakelock": "node termux-server-suite/system/wakelock-manager.js",
     "start:all": "pm2 start pm2.config.js",
     "stop:all": "pm2 stop pm2.config.js",
+    "stop:vscode": "pm2 stop vscode",
+    "delete:vscode": "pm2 delete vscode",
     "status": "pm2 status",
     "logs": "pm2 logs",
     "test": "jest",

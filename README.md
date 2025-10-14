@@ -76,6 +76,20 @@ termux-server-suite/
 
 项目的配置文件位于 `termux-server-suite/config/` 目录中，包括连接信息和SSH配置。
 
+## 清理残留进程
+
+如果之前运行过包含 VS Code Server 的版本，可能有残留的进程。可以使用以下命令清理：
+
+```
+node termux-server-suite/system/cleanup-vscode.js
+```
+
+或者手动清理：
+```
+npm run stop:vscode
+npm run delete:vscode
+```
+
 ## 注意事项
 
 - 请勿将敏感信息提交到版本控制系统

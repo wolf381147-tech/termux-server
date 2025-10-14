@@ -168,6 +168,20 @@ npm run status
 npm run logs
 ```
 
+### 清理残留进程
+
+如果之前运行过包含 VS Code Server 的版本，可能有残留的进程。可以使用以下命令清理：
+
+```
+node termux-server-suite/system/cleanup-vscode.js
+```
+
+或者手动清理：
+```
+npm run stop:vscode
+npm run delete:vscode
+```
+
 ## 开发指南
 
 ### 服务架构
